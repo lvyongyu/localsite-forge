@@ -56,7 +56,7 @@ export const DETAIL_FIELDS = [
   'servesBreakfast', 'servesBrunch', 'servesLunch', 'servesDinner',
   'servesVegetarianFood', 'servesCoffee', 'servesDessert', 'servesBeer', 'servesWine',
   'goodForChildren', 'goodForGroups', 'restroom', 'parkingOptions',
-  'paymentOptions', 'accessibilityOptions',
+  'paymentOptions', 'accessibilityOptions', 'photos',
 ].join(',');
 
 function key() {
@@ -138,6 +138,20 @@ export async function placeDetails(id, { refresh = false } = {}) {
   });
   cacheWrite(id, data);
   return data;
+}
+
+/**
+ * Fetch one photo's bytes. Photo media is billed per request, so callers
+ * should ask for only what they will actually show.
+ * @param {string} name  photo resource name from Place Details
+ */
+export async function photoBytes(name, { maxWidthPx = 1400 } = {}) {
+  const url = `${BASE}/${name}/media?maxWidthPx=${maxWidthPx}&skipHttpRedirect=true`;
+  const meta = await call(url, { headers: { 'X-Goog-Api-Key': key() } });
+  if (!meta.photoUri) throw new Error('no photoUri returned for ' + name);
+  const res = await fetch(meta.photoUri);
+  if (!res.ok) throw new Error(`photo fetch ${res.status}`);
+  return Buffer.from(await res.arrayBuffer());
 }
 
 export function cacheStatus() {

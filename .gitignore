@@ -1,6 +1,8 @@
-node_modules/
-output/
-leads/
-.env
 .DS_Store
 .cache/
+.env
+leads/
+node_modules/
+output/
+share/
+tools/detect-people

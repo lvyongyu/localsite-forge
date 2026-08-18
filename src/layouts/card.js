@@ -15,6 +15,12 @@ export function render(p, t, opts = {}) {
   const services = p.dishes.map(d =>
     `<li><span>${esc(d.title)}</span><em>Enquire</em></li>`).join('');
 
+  // A narrow band under the header: enough to show the room, not so much
+  // that it delays the booking button.
+  const band = p.photos.length ? `<div class="band">${p.photos.map((ph, i) => `
+    <figure><img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 1}" loading="lazy" decoding="async">
+      <figcaption>${esc(ph.author)}</figcaption></figure>`).join('')}</div>` : '';
+
   const hourRows = p.hours.map(h =>
     `<tr data-d="${h.day}"><th scope="row">${h.label}</th><td>${esc(h.text)}</td></tr>`).join('');
 
@@ -55,6 +61,13 @@ a{color:inherit}
 .lead{font-size:clamp(1.35rem,3vw,1.95rem);font-weight:600;letter-spacing:-.02em;
   max-width:22ch;text-wrap:balance;line-height:1.2}
 .sub{color:var(--dim);margin-top:12px;max-width:52ch}
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:26px}
+.band figure{margin:0;position:relative;aspect-ratio:3/2;overflow:hidden;border-radius:4px;background:var(--line)}
+.band img{width:100%;height:100%;object-fit:cover;display:block}
+.band figcaption{position:absolute;left:0;right:0;bottom:0;font-family:var(--label);font-size:.55rem;
+  letter-spacing:.08em;text-transform:uppercase;color:#fff;padding:15px 8px 5px;
+  background:linear-gradient(transparent,rgba(0,0,0,.72));opacity:0;transition:opacity .18s}
+.band figure:hover figcaption{opacity:1}
 .cols{display:grid;grid-template-columns:1.35fr 1fr;gap:clamp(26px,4vw,54px);margin-top:44px;align-items:start}
 @media(max-width:780px){.cols{grid-template-columns:1fr;gap:34px}}
 h2{font-family:var(--label);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
@@ -96,6 +109,8 @@ tr[data-today] th,tr[data-today] td{color:var(--brand);font-weight:650}
 <div class="wrap">
   <p class="lead">${esc(p.summary || `${p.category} in ${p.suburb || 'the neighbourhood'}.`)}</p>
   ${p.rating ? `<p class="sub">Rated ${p.rating} out of 5 across ${p.reviews} Google reviews.</p>` : ''}
+
+  ${band}
 
   <div class="cols">
     <div>

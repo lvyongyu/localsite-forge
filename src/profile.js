@@ -219,6 +219,7 @@ export function buildProfile(place, opts = {}) {
     mapsQuery: encodeURIComponent(`${name} ${place.formattedAddress ?? ''}`),
     lat: place.location?.latitude, lng: place.location?.longitude,
     existingWeb: place.websiteUri ?? '',
+    photos: opts.photos ?? [],   // filled in by the CLI after download
   };
 }
 
@@ -229,7 +230,10 @@ export function contentTodo(p) {
   if (!p.dishes.length) todo.push(`${noun} — the API provides none. Get the real list from the owner.`);
   else todo.push(`Confirm the ${p.dishes.length} ${noun.toLowerCase()} below with the owner (mined from review text, NOT authoritative)`);
   todo.push('Prices — deliberately omitted. Never guess these.');
-  todo.push('Photos — no images are bundled. Google\'s photos are licensed to their authors; get the owner\'s own shots.');
+  if (p.photos.length)
+    todo.push(`Photos — ${p.photos.length} image(s) from the Google listing, auto-screened so none contain people. They still belong to whoever took them: fine for showing the owner, replace with their own shots before it goes live. See photos/ATTRIBUTION.txt.`);
+  else
+    todo.push('Photos — none bundled. Google\'s photos belong to their authors; get the owner\'s own shots.');
   if (!p.summary) todo.push('Hero description — no editorial summary from Google; the placeholder needs a rewrite.');
   if (!p.phone) todo.push('Phone number — none on the listing. Click-to-call is disabled until you have one.');
   if (!p.hours.some(h => h.open != null)) todo.push('Opening hours — none on the listing. The hours table is hidden.');

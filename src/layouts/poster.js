@@ -35,6 +35,13 @@ export function render(p, t, opts = {}) {
       <td class="tm">${esc(h.text)}</td></tr>`;
   }).join('');
 
+  // A restrained band, not a gallery: the poster's whole argument is that
+  // type carries the page, and a background image would wreck the contrast
+  // the day-bar depends on.
+  const band = p.photos.length ? `<div class="band">${p.photos.map((ph, i) => `
+    <figure><img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 1}" loading="lazy" decoding="async">
+      <figcaption>${esc(ph.author)}</figcaption></figure>`).join('')}</div>` : '';
+
   // Offerings as a single run of text, the way a shopfront lists them.
   const run = p.dishes.map(d => `<span>${esc(d.title)}</span>`).join('<i>/</i>');
 
@@ -95,6 +102,13 @@ tr[data-today] .tm{color:var(--ink)}
 #nowline::before{content:"";position:absolute;top:-3px;left:-2.5px;width:6px;height:6px;
   border-radius:50%;background:var(--hot)}
 
+.band{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.band figure{margin:0;position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--line)}
+.band img{width:100%;height:100%;object-fit:cover;display:block}
+.band figcaption{position:absolute;left:0;right:0;bottom:0;font-family:var(--label);
+  font-size:.53rem;letter-spacing:.1em;text-transform:uppercase;padding:14px 7px 5px;color:#fff;
+  background:linear-gradient(transparent,rgba(0,0,0,.72));opacity:0;transition:opacity .18s}
+.band figure:hover figcaption,.band figure:focus-within figcaption{opacity:1}
 .run{font-size:clamp(.95rem,2.2vw,1.35rem);line-height:1.5;color:var(--dim);
   max-width:44ch;text-wrap:pretty}
 .run span{white-space:nowrap}
@@ -129,6 +143,8 @@ footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
     <table id="hours">${bars}</table>
     <div class="axis">${ticks.join('')}<span id="nowline" hidden></span></div>
   </div>` : ''}
+
+  ${band}
 
   ${run ? `<p class="run">${run}</p>` : ''}
 

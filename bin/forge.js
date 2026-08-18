@@ -9,6 +9,7 @@ import { renderSite, pickLayout } from '../src/template.js';
 import { buildPitch } from '../src/pitch.js';
 import { slug, dirFor } from '../src/render-utils.js';
 import { renderRoster } from '../src/roster.js';
+import { choosePhotos, fetchPhotos } from '../src/photos.js';
 
 // Minimal .env loader — avoids a dependency for one line of work.
 try {
@@ -50,6 +51,10 @@ localsite-forge — find local businesses with no website, then build them one.
       --price <n>         headline price in the generated pitch (default 1000)
       --layout <name>     override: poster | billoffare | card
       --refresh           bypass the details cache and re-fetch from the API
+      --photos <n>        images to pull per business (default 3, billed each)
+      --no-photos         skip images entirely
+      --inline-photos     embed images as data URIs so index.html is one
+                          self-contained file you can send to an owner
       --live              drop the noindex tag (ONLY after the owner has paid
                           and agreed — see "Before you publish" in the README)
 
@@ -142,15 +147,42 @@ async function doScan() {
   console.log(`Next:  node bin/forge.js build --from ${out} --top 5`);
 }
 
-function emit(place, outDir) {
-  const profile = buildProfile(place, { noReviews: has('no-reviews'), noDishes: has('no-dishes') });
+async function emit(place, outDir) {
+  const dirEarly = path.join(outDir, dirFor({
+    name: place.displayName?.text ?? '', id: place.id ?? '',
+  }));
+  let photos = [];
+  if (!has('no-photos')) {
+    const want = choosePhotos(place, Number(flag('photos', 3)));
+    if (want.length) {
+      fs.mkdirSync(dirEarly, { recursive: true });
+      photos = await fetchPhotos(want, dirEarly);
+    }
+  }
+  const profile = buildProfile(place, {
+    noReviews: has('no-reviews'), noDishes: has('no-dishes'), photos,
+  });
   const theme = pickTheme({ name: profile.name, types: profile.types, id: profile.id });
   const forced = flag('layout');
   const lay = forced ? { name: forced, reason: 'forced with --layout' } : pickLayout(profile);
   const dir = path.join(outDir, dirFor(profile));
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'index.html'),
-    renderSite(profile, theme, { live: has('live'), layout: lay.name }));
+  let html = renderSite(profile, theme, { live: has('live'), layout: lay.name });
+
+  // A folder-with-images is awkward to hand someone. Inlining the photos makes
+  // the page a single file you can message to an owner and they can just open.
+  if (has('inline-photos') && photos.length) {
+    for (const ph of photos) {
+      const abs = path.join(dir, ph.src);
+      try {
+        const b64 = fs.readFileSync(abs).toString('base64');
+        html = html.split(`"${ph.src}"`).join(`"data:image/jpeg;base64,${b64}"`);
+      } catch {}
+    }
+    html = html.split(`url('${photos[0].src}')`).join(
+      `url('data:image/jpeg;base64,${fs.readFileSync(path.join(dir, photos[0].src)).toString('base64')}')`);
+  }
+  fs.writeFileSync(path.join(dir, 'index.html'), html);
 
   fs.writeFileSync(path.join(dir, 'pitch.md'), buildPitch(profile, { price: Number(flag('price', 1000)) }));
 
@@ -170,6 +202,7 @@ function emit(place, outDir) {
   console.log(`  ${profile.name}  ->  ${path.relative(process.cwd(), dir)}/index.html`);
   console.log(`     layout: ${lay.name} — ${lay.reason}`);
   console.log(`     palette: ${theme.name} — ${theme.reason}`);
+  if (photos.length) console.log(`     ${photos.length} photo(s) kept (people-free)`);
   if (todo.length) console.log(`     ${todo.length} item(s) need a human — see content-todo.md`);
   return dir;
 }
@@ -181,20 +214,20 @@ async function doBuild() {
 
   if (fixture) {
     console.log('\nBuilding from fixture (offline):');
-    emit(JSON.parse(fs.readFileSync(fixture, 'utf8')), outDir);
+    await emit(JSON.parse(fs.readFileSync(fixture, 'utf8')), outDir);
   } else if (from) {
     const leads = JSON.parse(fs.readFileSync(from, 'utf8'));
     const top = leads.slice(0, Number(flag('top', 5)));
     console.log(`\nBuilding ${top.length} site(s):`);
     const before = cacheStatus();
-    for (const l of top) emit(await placeDetails(l.id, { refresh: has('refresh') }), outDir);
+    for (const l of top) await emit(await placeDetails(l.id, { refresh: has('refresh') }), outDir);
     console.log(`\n  cache: ${before} entries before, ${cacheStatus()} after` +
       ` (repeat builds cost nothing — pass --refresh to force a re-fetch)`);
   } else {
     const id = args[1];
     if (!id || id.startsWith('--')) { console.error('build needs a placeId, --fixture or --from'); process.exit(1); }
     console.log('\nBuilding from live lookup:');
-    emit(await placeDetails(id), outDir);
+    await emit(await placeDetails(id, { refresh: has('refresh') }), outDir);
   }
   console.log('\nOpen one to review it, then deploy the folder to Netlify/Cloudflare Pages.\n');
 }

@@ -18,6 +18,18 @@ export function render(p, t, opts = {}) {
   const hourRows = p.hours.map(h =>
     `<tr data-d="${h.day}"><th scope="row">${h.label.slice(0,3)}</th><td>${esc(h.text)}</td></tr>`).join('');
 
+  // The fixed panel carries the room's atmosphere; the menu column stays
+  // clean. Gradient is heavy on purpose — the panel's text must stay legible
+  // over whatever photo the listing happens to have.
+  const hero = p.photos[0];
+  const asideStyle = hero
+    ? ` style="background-image:linear-gradient(180deg,rgba(0,0,0,.82),rgba(0,0,0,.93)),url('${esc(hero.src)}');background-size:cover;background-position:center"`
+    : '';
+  const rest = p.photos.slice(1);
+  const plates = rest.length ? `<div class="plates">${rest.map((ph, i) => `
+    <figure><img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 2}" loading="lazy" decoding="async">
+      <figcaption>${esc(ph.author)} &middot; Google</figcaption></figure>`).join('')}</div>` : '';
+
   const quotes = p.quotes.map(q =>
     `<figure><blockquote>${esc(q.text)}</blockquote>
      <figcaption>${esc(q.author)}, Google</figcaption></figure>`).join('');
@@ -80,6 +92,13 @@ th{text-align:left;font-weight:400;color:var(--dim);padding:8px 22px 8px 0;
 td{padding:8px 0;font-variant-numeric:tabular-nums;text-align:right}
 tr[data-today] th,tr[data-today] td{color:var(--cool);font-weight:600}
 figure{margin:26px 0 0}
+.plates{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:34px 0 0}
+.plates figure{margin:0;aspect-ratio:1;overflow:hidden;position:relative;border-radius:2px}
+.plates img{width:100%;height:100%;object-fit:cover;display:block}
+.plates figcaption{position:absolute;left:0;right:0;bottom:0;font-family:var(--label);font-size:.54rem;
+  letter-spacing:.09em;text-transform:uppercase;color:#fff;padding:16px 8px 6px;margin:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.75));opacity:0;transition:opacity .18s}
+.plates figure:hover figcaption{opacity:1}
 blockquote{font-size:1.16rem;line-height:1.5;text-wrap:pretty}
 blockquote::before{content:"\\201C"}
 blockquote::after{content:"\\201D"}
@@ -98,7 +117,7 @@ figcaption{font-family:var(--label);font-size:.63rem;letter-spacing:.16em;
 </head>
 <body>
 <div class="split">
-  <aside>
+  <aside${asideStyle}>
     <div>
       <div class="kicker">${esc(p.category)}${p.suburb ? ' &middot; ' + esc(p.suburb) : ''}</div>
       <h1>${esc(p.name)}</h1>
@@ -117,6 +136,8 @@ figcaption{font-family:var(--label);font-size:.63rem;letter-spacing:.16em;
     <div class="course">What regulars order</div>
     <ul>${rows}</ul>
     <p class="note">Prices confirmed in house. Ask the floor about today's specials.</p>` : ''}
+
+    ${plates}
 
     ${p.attrs.length ? `<p class="note" style="border:0;padding-top:26px">${p.attrs.map(esc).join(' &middot; ')}</p>` : ''}
 

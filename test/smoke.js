@@ -5,6 +5,7 @@ import { pickTheme } from '../src/theme.js';
 import { renderSite, pickLayout, layoutNames } from '../src/template.js';
 import { classifyWeb, filterAndRank } from '../src/scan.js';
 import { slug, dirFor } from '../src/render-utils.js';
+import { rejectPeople } from '../src/photos.js';
 import fs from 'node:fs';
 
 let pass = 0, fail = 0;
@@ -117,6 +118,27 @@ t('generated pages differ structurally, not just in colour', () => {
   assert.notEqual(a, b);
   // Different layouts, not the same skeleton recoloured.
   assert.ok(a.includes('<main') && b.includes('class="dock"'), 'both pages used the same structure');
+});
+
+console.log('\nphoto screening');
+t('detector flags a person, passes a plain shopfront', () => {
+  // Uses the real Vision-based binary against the two known cases from Box
+  // Hill: a client photographed from behind (zero faces, one body) and an
+  // empty storefront at dusk.
+  const dir = 'output/tnt-hair-studio/photos';
+  if (!fs.existsSync('tools/detect-people') || !fs.existsSync(dir)) {
+    console.log('       (skipped — detector or sample photos absent)');
+    return;
+  }
+  const kept = fs.readdirSync(dir).filter(f => /\.jpg$/.test(f));
+  const v = rejectPeople(kept.map(f => dir + '/' + f));
+  assert.ok(v.ok, 'detector did not run');
+  assert.equal(v.rejected.length, 0, 'a kept photo still contains a person: ' + v.rejected.join(','));
+});
+t('fails closed when the detector is missing', () => {
+  // Never fall back to "ship the photo anyway".
+  const v = rejectPeople(['/nonexistent/definitely-not-here.jpg']);
+  assert.equal(v.clean.length, 0);
 });
 
 console.log('\noutput paths');
