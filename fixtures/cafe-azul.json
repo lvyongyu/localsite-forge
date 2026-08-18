@@ -1,0 +1,45 @@
+{
+  "_note": "Offline fixture shaped like a Places API (New) Place Details response. Real listing data for Cafe Azul, Richmond VIC (captured 2026-08-18). Review author names are generalised on purpose - no real personal names in this repo.",
+  "id": "FIXTURE_CAFE_AZUL",
+  "displayName": { "text": "Cafe Azul", "languageCode": "en" },
+  "formattedAddress": "346 Bridge Rd, Richmond VIC 3121, Australia",
+  "shortFormattedAddress": "346 Bridge Rd, Richmond",
+  "rating": 4.5,
+  "userRatingCount": 318,
+  "nationalPhoneNumber": "(03) 9421 5959",
+  "internationalPhoneNumber": "+61 3 9421 5959",
+  "primaryTypeDisplayName": { "text": "Cafe" },
+  "types": ["cafe", "restaurant", "food", "point_of_interest"],
+  "priceLevel": "PRICE_LEVEL_MODERATE",
+  "businessStatus": "OPERATIONAL",
+  "location": { "latitude": -37.819071, "longitude": 145.0029114 },
+  "editorialSummary": { "text": "Relaxed coffee and brunch destination with large windows, patterned tiles and a leafy courtyard." },
+  "regularOpeningHours": {
+    "periods": [
+      { "open": { "day": 0, "hour": 8, "minute": 0 }, "close": { "day": 0, "hour": 14, "minute": 0 } },
+      { "open": { "day": 1, "hour": 6, "minute": 0 }, "close": { "day": 1, "hour": 14, "minute": 30 } },
+      { "open": { "day": 2, "hour": 6, "minute": 0 }, "close": { "day": 2, "hour": 14, "minute": 30 } },
+      { "open": { "day": 3, "hour": 6, "minute": 0 }, "close": { "day": 3, "hour": 14, "minute": 30 } },
+      { "open": { "day": 4, "hour": 6, "minute": 0 }, "close": { "day": 4, "hour": 14, "minute": 30 } },
+      { "open": { "day": 5, "hour": 6, "minute": 0 }, "close": { "day": 5, "hour": 14, "minute": 30 } },
+      { "open": { "day": 6, "hour": 6, "minute": 0 }, "close": { "day": 6, "hour": 15, "minute": 0 } }
+    ]
+  },
+  "dineIn": true, "takeout": true, "delivery": true,
+  "outdoorSeating": true,
+  "servesBreakfast": true, "servesBrunch": true, "servesLunch": true,
+  "servesCoffee": true, "servesVegetarianFood": true, "servesDessert": true,
+  "goodForChildren": true,
+  "reviews": [
+    { "rating": 5, "authorAttribution": { "displayName": "Google user A" },
+      "text": { "text": "Came here hungry as, lumbered out full. I had the Farmers Breakfast and a flat white. Farmers breakfast is very well done." } },
+    { "rating": 5, "authorAttribution": { "displayName": "Google user B" },
+      "text": { "text": "Friendly staff, great quality food, pleasant easy going environment. The courtyard out the back is lovely." } },
+    { "rating": 4, "authorAttribution": { "displayName": "Google user C" },
+      "text": { "text": "Music wasn't too loud, nice decor, good service and the food was nice. For my meal, I ordered scrambled eggs with mushrooms and hash browns." } },
+    { "rating": 5, "authorAttribution": { "displayName": "Google user D" },
+      "text": { "text": "The service was genuinely warm and thoughtful. We had the beef sausage rolls, a chicken and avocado sandwich, and a couple of muffins." } },
+    { "rating": 5, "authorAttribution": { "displayName": "Google user E" },
+      "text": { "text": "Great smashed avocado and the acai bowl is generous. The cappuccino was excellent too." } }
+  ]
+}

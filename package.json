@@ -1,0 +1,14 @@
+{
+  "name": "localsite-forge",
+  "version": "0.1.0",
+  "description": "Find high-rated local businesses with no website, then generate one for each.",
+  "type": "module",
+  "bin": { "forge": "./bin/forge.js" },
+  "scripts": {
+    "demo": "node bin/forge.js build --fixture fixtures/cafe-azul.json",
+    "test": "node test/smoke.js"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT",
+  "private": true
+}
