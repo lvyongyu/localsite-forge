@@ -122,3 +122,18 @@ export async function fetchPhotos(chosen, dir, { maxWidthPx = 1200 } = {}) {
   }
   return safe;
 }
+
+/**
+ * Re-point photos at data URIs so the page carries its own images. Needed by
+ * flat output — one <shop>.html with nothing beside it — and available on its
+ * own via --inline-photos. Files stay on disk as the review/cache copy; an
+ * unreadable one is dropped rather than left as a broken <img>.
+ */
+export function inlinePhotos(photos, dir) {
+  return photos.map(ph => {
+    try {
+      const b64 = fs.readFileSync(path.join(dir, ph.src)).toString('base64');
+      return { ...ph, src: `data:image/jpeg;base64,${b64}` };
+    } catch { return null; }
+  }).filter(Boolean);
+}

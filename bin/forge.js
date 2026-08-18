@@ -2,14 +2,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { searchText, placeDetails, cacheStatus } from '../src/places.js';
-import { filterAndRank, toCsv } from '../src/scan.js';
+import { filterAndRank, toCsv, classifyWeb } from '../src/scan.js';
 import { buildProfile, contentTodo } from '../src/profile.js';
 import { pickTheme } from '../src/theme.js';
 import { renderSite, pickLayout } from '../src/template.js';
 import { buildPitch } from '../src/pitch.js';
 import { slug, dirFor } from '../src/render-utils.js';
 import { renderRoster } from '../src/roster.js';
-import { choosePhotos, fetchPhotos } from '../src/photos.js';
+import { choosePhotos, fetchPhotos, inlinePhotos } from '../src/photos.js';
 
 // Minimal .env loader — avoids a dependency for one line of work.
 try {
@@ -42,7 +42,13 @@ localsite-forge — find local businesses with no website, then build them one.
   forge roster [--suburb <name>] [--flat]
                                     build the door-knock page over output/
 
+  forge site   "346 Bridge Rd, Richmond VIC 3121"
+                                    one shop, one command: look the address up
+                                    and build it. Takes every build option below.
+      --pick <n>          use the nth match instead of the first
+
   forge build  <placeId>            build one site from a live lookup
+  forge build  --address <text>     same as: forge site <text>
   forge build  --fixture <file>     build from a saved JSON payload (no API key needed)
   forge build  --from <leads.json>  batch-build from a scan
       --top <n>           only the top N leads (default 5)
@@ -54,8 +60,12 @@ localsite-forge — find local businesses with no website, then build them one.
       --refresh           bypass the details cache and re-fetch from the API
       --photos <n>        images to pull per business (default 3, billed each)
       --no-photos         skip images entirely
-      --inline-photos     embed images as data URIs so index.html is one
-                          self-contained file you can send to an owner
+      --inline-photos     embed images as data URIs so the page needs no files
+                          beside it
+      --flat              write output/<shop>.html instead of a folder — one
+                          self-contained file you can message to an owner
+                          (implies --inline-photos; pitch notes land in
+                          output/pitch/). Pair with: forge roster --flat
       --live              drop the noindex tag (ONLY after the owner has paid
                           and agreed — see "Before you publish" in the README)
 
@@ -151,47 +161,55 @@ async function doScan() {
   console.log(`Next:  node bin/forge.js build --from ${out} --top 5`);
 }
 
+// Where a build lands. A folder per shop by default; --flat writes one
+// self-contained file per shop instead, because handing an owner their
+// mock-up should not involve a folder, a zip, or a deploy.
+function pathsFor(outDir, base, flat) {
+  return flat
+    ? { html:  path.join(outDir, base + '.html'),
+        pitch: path.join(outDir, 'pitch', base + '.md'),
+        todo:  path.join(outDir, 'pitch', base + '-content-todo.md') }
+    : { html:  path.join(outDir, base, 'index.html'),
+        pitch: path.join(outDir, base, 'pitch.md'),
+        todo:  path.join(outDir, base, 'content-todo.md') };
+}
+
 async function emit(place, outDir) {
-  const dirEarly = path.join(outDir, dirFor({
-    name: place.displayName?.text ?? '', id: place.id ?? '',
-  }));
+  const flat = has('flat');
+  const base = dirFor({ name: place.displayName?.text ?? '', id: place.id ?? '' });
+
+  // Photos download to <outDir>/<base>/photos/ under either layout: that
+  // folder is the cache, and the place you delete an unsuitable shot from —
+  // a deletion that has to survive the next rebuild. Flat output embeds the
+  // survivors as data URIs rather than linking to them.
+  const shopDir = path.join(outDir, base);
   let photos = [];
   if (!has('no-photos')) {
     const want = choosePhotos(place, Number(flag('photos', 3)));
     if (want.length) {
-      fs.mkdirSync(dirEarly, { recursive: true });
-      photos = await fetchPhotos(want, dirEarly);
+      fs.mkdirSync(shopDir, { recursive: true });
+      photos = await fetchPhotos(want, shopDir);
     }
   }
+  const inline = flat || has('inline-photos');
+  if (inline && photos.length) photos = inlinePhotos(photos, shopDir);
+
   const profile = buildProfile(place, {
     noReviews: has('no-reviews'), noDishes: has('no-dishes'), photos,
   });
   const theme = pickTheme({ name: profile.name, types: profile.types, id: profile.id });
   const forced = flag('layout');
   const lay = forced ? { name: forced, reason: 'forced with --layout' } : pickLayout(profile);
-  const dir = path.join(outDir, dirFor(profile));
-  fs.mkdirSync(dir, { recursive: true });
-  let html = renderSite(profile, theme, { live: has('live'), layout: lay.name });
+  const html = renderSite(profile, theme, { live: has('live'), layout: lay.name });
 
-  // A folder-with-images is awkward to hand someone. Inlining the photos makes
-  // the page a single file you can message to an owner and they can just open.
-  if (has('inline-photos') && photos.length) {
-    for (const ph of photos) {
-      const abs = path.join(dir, ph.src);
-      try {
-        const b64 = fs.readFileSync(abs).toString('base64');
-        html = html.split(`"${ph.src}"`).join(`"data:image/jpeg;base64,${b64}"`);
-      } catch {}
-    }
-    html = html.split(`url('${photos[0].src}')`).join(
-      `url('data:image/jpeg;base64,${fs.readFileSync(path.join(dir, photos[0].src)).toString('base64')}')`);
-  }
-  fs.writeFileSync(path.join(dir, 'index.html'), html);
-
-  fs.writeFileSync(path.join(dir, 'pitch.md'), buildPitch(profile, { price: Number(flag('price', 1000)) }));
+  const out = pathsFor(outDir, base, flat);
+  fs.mkdirSync(path.dirname(out.html), { recursive: true });
+  fs.mkdirSync(path.dirname(out.pitch), { recursive: true });
+  fs.writeFileSync(out.html, html);
+  fs.writeFileSync(out.pitch, buildPitch(profile, { price: Number(flag('price', 1000)) }));
 
   const todo = contentTodo(profile);
-  fs.writeFileSync(path.join(dir, 'content-todo.md'),
+  fs.writeFileSync(out.todo,
     `# ${profile.name} — before this goes live\n\n` +
     `Layout: **${lay.name}** (${lay.reason})\nPalette: **${theme.name}** (${theme.reason})\n\n` +
     todo.map(t => `- [ ] ${t}`).join('\n') +
@@ -203,11 +221,51 @@ async function emit(place, outDir) {
     `- Phone: ${profile.phone || '(none on listing)'}\n` +
     `- Existing web: ${profile.existingWeb || '(none — this is the pitch)'}\n`);
 
-  console.log(`  ${profile.name}  ->  ${path.relative(process.cwd(), dir)}/index.html`);
+  console.log(`  ${profile.name}  ->  ${path.relative(process.cwd(), out.html)}`);
   console.log(`     layout: ${lay.name} — ${lay.reason}`);
   console.log(`     palette: ${theme.name} — ${theme.reason}`);
-  if (photos.length) console.log(`     ${photos.length} photo(s) kept (people-free)`);
-  if (todo.length) console.log(`     ${todo.length} item(s) need a human — see content-todo.md`);
+  if (photos.length)
+    console.log(`     ${photos.length} photo(s) kept (people-free)${inline ? ', embedded in the page' : ''}`);
+  if (todo.length) console.log(`     ${todo.length} item(s) need a human — see ${path.basename(out.todo)}`);
+  return out.html;
+}
+
+// One shop, one command. What you actually have when someone points at a
+// shopfront is an address, not a place id — so look it up, say plainly which
+// listing was matched, and build that one.
+async function doAddress(query) {
+  // Cap the candidate list: an address is meant to be one shop, and every
+  // extra result is a billed row on a query that was already ambiguous.
+  const found = (await searchText({ query, max: 5 })).filter(p => p.id);
+  if (!found.length) {
+    throw new Error(`Nothing on Google matches "${query}".\n` +
+      '  Add the suburb and postcode, or search the shop name instead of the street number.');
+  }
+
+  const n = Number(flag('pick', 1));
+  const i = Number.isFinite(n) ? Math.min(Math.max(1, n), found.length) - 1 : 0;
+  const chosen = found[i];
+
+  console.log(`\nMatched: ${chosen.displayName?.text ?? '(unnamed)'} — ${chosen.formattedAddress ?? ''}`);
+  if (chosen.rating) console.log(`  ${chosen.rating}★ from ${chosen.userRatingCount ?? 0} reviews`);
+
+  const web = classifyWeb(chosen.websiteUri);
+  if (web === 'own')
+    console.log(`  Careful: the listing already points at a site of its own — ${chosen.websiteUri}`);
+  else if (web === 'none') console.log('  No website on the listing — this is the pitch.');
+  else console.log(`  ${web} only: ${chosen.websiteUri}`);
+
+  if (found.length > 1) {
+    console.log('\nOther matches (wrong shop? re-run with --pick <n>):');
+    found.forEach((f, j) => {
+      if (j !== i) console.log(`  ${j + 1}. ${f.displayName?.text ?? '(unnamed)'} — ${f.formattedAddress ?? ''}`);
+    });
+  }
+
+  console.log('\nBuilding:');
+  const dir = await emit(await placeDetails(chosen.id, { refresh: has('refresh') }),
+    flag('out', path.join(ROOT, 'output')));
+  console.log('\nOpen it, then walk it in.\n');
   return dir;
 }
 
@@ -215,8 +273,12 @@ async function doBuild() {
   const outDir = flag('out', path.join(ROOT, 'output'));
   const fixture = flag('fixture');
   const from = flag('from');
+  const address = flag('address');
 
-  if (fixture) {
+  if (address) {
+    await doAddress(address);
+    return;
+  } else if (fixture) {
     console.log('\nBuilding from fixture (offline):');
     await emit(JSON.parse(fs.readFileSync(fixture, 'utf8')), outDir);
   } else if (from) {
@@ -233,11 +295,18 @@ async function doBuild() {
     console.log('\nBuilding from live lookup:');
     await emit(await placeDetails(id, { refresh: has('refresh') }), outDir);
   }
-  console.log('\nOpen one to review it, then deploy the folder to Netlify/Cloudflare Pages.\n');
+  console.log(has('flat')
+    ? '\nEach file is self-contained — open one to review it, then message it to the owner.\n'
+    : '\nOpen one to review it, then deploy the folder to Netlify/Cloudflare Pages.\n');
 }
 
 try {
   if (cmd === 'scan') await doScan();
+  else if (cmd === 'site') {
+    const q = args[1] && !args[1].startsWith('--') ? args[1] : flag('address');
+    if (!q) { console.error('site needs an address, e.g. forge site "346 Bridge Rd, Richmond VIC 3121"'); process.exit(1); }
+    await doAddress(q);
+  }
   else if (cmd === 'merge') doMerge();
   else if (cmd === 'roster') doRoster();
   else if (cmd === 'build') await doBuild();

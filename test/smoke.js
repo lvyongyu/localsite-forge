@@ -5,8 +5,12 @@ import { pickTheme } from '../src/theme.js';
 import { renderSite, pickLayout, layoutNames } from '../src/template.js';
 import { classifyWeb, filterAndRank } from '../src/scan.js';
 import { slug, dirFor } from '../src/render-utils.js';
-import { rejectPeople } from '../src/photos.js';
+import { rejectPeople, inlinePhotos } from '../src/photos.js';
+import { renderRoster } from '../src/roster.js';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 let pass = 0, fail = 0;
 const t = (name, fn) => {
@@ -139,6 +143,48 @@ t('fails closed when the detector is missing', () => {
   // Never fall back to "ship the photo anyway".
   const v = rejectPeople(['/nonexistent/definitely-not-here.jpg']);
   assert.equal(v.clean.length, 0);
+});
+
+console.log('\nflat output');
+t('REGRESSION: build --flat writes the files roster --flat links to', () => {
+  // These two halves shipped apart once: the roster looked for <shop>.html
+  // and pitch/<shop>.md while every build still wrote <shop>/index.html, so
+  // `roster --flat` reported nothing built.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-flat-'));
+  try {
+    execFileSync(process.execPath, ['bin/forge.js', 'demo', '--flat', '--out', dir], { stdio: 'pipe' });
+    assert.ok(fs.existsSync(path.join(dir, 'cafe-azul.html')), 'no flat page written');
+    assert.ok(fs.existsSync(path.join(dir, 'pitch', 'cafe-azul.md')), 'no flat pitch written');
+    assert.ok(!fs.existsSync(path.join(dir, 'cafe-azul', 'index.html')), 'still wrote a folder');
+
+    const lead = { id:'FIXTURE_CAFE_AZUL', name:'Cafe Azul', rating:4.5, reviews:318,
+                   address:'346 Bridge Rd, Richmond VIC 3121, Australia', phone:'', category:'Cafe',
+                   web:'none', score:100 };
+    const roster = renderRoster([lead], { flat: true });
+    assert.ok(roster.includes('href="cafe-azul.html"'), 'roster does not link the flat page');
+    assert.ok(roster.includes('href="pitch/cafe-azul.md"'), 'roster does not link the flat pitch');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+t('a flat page carries no external requests', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-flat-'));
+  try {
+    execFileSync(process.execPath, ['bin/forge.js', 'demo', '--flat', '--out', dir], { stdio: 'pipe' });
+    const html = fs.readFileSync(path.join(dir, 'cafe-azul.html'), 'utf8');
+    assert.ok(!/<(script|img|link)[^>]+(src|href)="(?!data:|tel:|https:\/\/www\.google\.com)/.test(html),
+      'flat page pulls something in from outside itself');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+t('inlined photos become data URIs, unreadable ones are dropped', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-inline-'));
+  try {
+    fs.mkdirSync(path.join(dir, 'photos'));
+    fs.writeFileSync(path.join(dir, 'photos', '1.jpg'), Buffer.from([0xff, 0xd8, 0xff]));
+    const out = inlinePhotos(
+      [{ src:'photos/1.jpg', author:'A' }, { src:'photos/gone.jpg', author:'B' }], dir);
+    assert.equal(out.length, 1, 'a missing file was not dropped');
+    assert.ok(out[0].src.startsWith('data:image/jpeg;base64,'), out[0].src.slice(0, 40));
+    assert.equal(out[0].author, 'A', 'attribution lost on inlining');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 console.log('\noutput paths');
