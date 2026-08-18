@@ -1,5 +1,5 @@
 {
-  "_note": "Prospect, not a sample. Carries only what has been verified: trading name, street address, and the cuisine visible on the shopfront (the plaques read HUI JIAXIANG / 湘菜). No rating, hours, phone or reviews are present because none have been confirmed — build with --draft so those come out as blanks to fill in with the owner, and re-fetch from the API (forge site \"15 Village Ave, Doncaster VIC 3108\") once a key is available.",
+  "_note": "Prospect, not a sample. Verified: trading name, street address, Hunan cuisine (the plaques on the shopfront). The menu was read off the shop's own dish photographs and the opening hours below are an EXAMPLE pattern — neither is confirmed by the owner, and neither is published anywhere. Build with --draft so both carry their warning, and replace them the moment the owner says the real ones. The phone number is a RESERVED FICTITIOUS number (Australia's 5550 range) so a demo can show a call button without ringing a stranger; replace it with the real one. forge site \"15 Village Ave, Doncaster VIC 3108\" once an API key is available.",
   "id": "THE_MU_DONCASTER",
   "displayName": {
     "text": "慕芙蓉小馆 The Mu",
@@ -22,6 +22,212 @@
       "**门口墙上三块牌子**：HUI JIAXIANG「走进联合国的湘菜代表」、「全国湘菜名店 50 强」、「20 年」。这是现成的信任状，网站首屏就该放着 —— 现在在 Google 上一个字都看不到，只有走到门口才知道。",
       "**同一排的邻居已经有网站了**：27 号 Vegie Mum 有自己的域名，还能在线点餐。客人在手机上比较的时候，有页面的和没页面的差别很直接。",
       "**湘菜在 Doncaster 这一带不多**，但搜「Hunan restaurant Doncaster」「湘菜 Doncaster」的人现在找不到你们 —— 这个词几乎没人跟你们抢。"
+    ],
+    "summary": "湘菜小馆，开在 Doncaster Village Ave。门口挂着「走进联合国的湘菜代表」「全国湘菜名店 50 强」三块牌子。",
+    "summaryEn": "A Hunan kitchen on Village Ave, Doncaster — the plaques at the door read “Hunan cuisine at the United Nations” and “Top 50 Hunan restaurants”."
+  },
+  "_menu": [
+    {
+      "zh": "小炒黄牛肉",
+      "en": "Stir-fried beef with chilli"
+    },
+    {
+      "zh": "香辣炒蟹",
+      "en": "Chilli crab"
+    },
+    {
+      "zh": "擂椒炒排骨",
+      "en": "Pork ribs with blistered green chilli"
+    },
+    {
+      "zh": "干锅排骨",
+      "en": "Dry-pot pork ribs"
+    },
+    {
+      "zh": "玉米排骨煲",
+      "en": "Pork ribs and sweetcorn pot"
+    },
+    {
+      "zh": "擂皮蛋配法棍",
+      "en": "Century egg with baguette"
+    }
+  ],
+  "dineIn": true,
+  "regularOpeningHours": {
+    "periods": [
+      {
+        "open": {
+          "day": 0,
+          "hour": 11,
+          "minute": 30
+        },
+        "close": {
+          "day": 0,
+          "hour": 14,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 1,
+          "hour": 11,
+          "minute": 30
+        },
+        "close": {
+          "day": 1,
+          "hour": 14,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 2,
+          "hour": 11,
+          "minute": 30
+        },
+        "close": {
+          "day": 2,
+          "hour": 14,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 3,
+          "hour": 11,
+          "minute": 30
+        },
+        "close": {
+          "day": 3,
+          "hour": 14,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 4,
+          "hour": 11,
+          "minute": 30
+        },
+        "close": {
+          "day": 4,
+          "hour": 14,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 5,
+          "hour": 11,
+          "minute": 30
+        },
+        "close": {
+          "day": 5,
+          "hour": 14,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 6,
+          "hour": 11,
+          "minute": 30
+        },
+        "close": {
+          "day": 6,
+          "hour": 14,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 0,
+          "hour": 17,
+          "minute": 0
+        },
+        "close": {
+          "day": 0,
+          "hour": 21,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 1,
+          "hour": 17,
+          "minute": 0
+        },
+        "close": {
+          "day": 1,
+          "hour": 21,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 2,
+          "hour": 17,
+          "minute": 0
+        },
+        "close": {
+          "day": 2,
+          "hour": 21,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 3,
+          "hour": 17,
+          "minute": 0
+        },
+        "close": {
+          "day": 3,
+          "hour": 21,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 4,
+          "hour": 17,
+          "minute": 0
+        },
+        "close": {
+          "day": 4,
+          "hour": 21,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 5,
+          "hour": 17,
+          "minute": 0
+        },
+        "close": {
+          "day": 5,
+          "hour": 21,
+          "minute": 30
+        }
+      },
+      {
+        "open": {
+          "day": 6,
+          "hour": 17,
+          "minute": 0
+        },
+        "close": {
+          "day": 6,
+          "hour": 21,
+          "minute": 30
+        }
+      }
     ]
+  },
+  "nationalPhoneNumber": "(03) 5550 1234",
+  "internationalPhoneNumber": "+61 3 5550 1234",
+  "_demo": {
+    "phone": true
   }
 }

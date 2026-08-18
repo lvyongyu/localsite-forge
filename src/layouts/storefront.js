@@ -17,7 +17,7 @@
 // is CSS, because the page has to work as a single file with no network.
 
 import { esc, head, mapsHref, telHref, a11yCss } from '../render-utils.js';
-import { T, DAYS, HTML_LANG, bi, biText, i18nCss, langScript } from '../i18n.js';
+import { T, DAYS, HTML_LANG, ATTR_ZH, bi, biText, i18nCss, langScript } from '../i18n.js';
 
 export function render(p, t, opts = {}) {
   const lang = opts.lang === 'zh' ? 'zh' : 'en';
@@ -44,27 +44,50 @@ export function render(p, t, opts = {}) {
   const navHtml = nav.map(([id, key]) =>
     `<a class="nl" href="#${id}" data-nav="${id}">${bi(key)}</a>`).join('');
 
+  // The day-bar: the week drawn to scale with a marker at the current time.
+  // "Are they still open?" is the question a shopfront page exists to answer,
+  // and it deserves a diagram rather than a sentence.
+  const spans = p.hours.filter(h => h.open != null);
+  const lo = spans.length ? Math.floor(Math.min(...spans.map(h => h.open))) : 9;
+  const hi = spans.length ? Math.ceil(Math.max(...spans.map(h => h.close))) : 21;
+  const pct = x => ((x - lo) / (hi - lo) * 100).toFixed(2);
+  const ticks = [];
+  for (let t = lo; t <= hi; t += (hi - lo > 10 ? 3 : 2))
+    ticks.push(`<span class="tick" style="left:${pct(t)}%"><i></i><b>${t % 12 || 12}${t < 12 ? 'a' : 'p'}</b></span>`);
+
+  const barRows = p.hours.map(h => `<tr data-d="${h.day}">
+      <th scope="row">${biText(DAYS.en[h.day].slice(0, 3), DAYS.zh[h.day])}</th>
+      <td><span class="track">${h.spans.map(([o, c]) =>
+        `<span class="fill" style="left:${pct(o)}%;width:${(pct(Math.min(c, hi)) - pct(o)).toFixed(2)}%"></span>`).join('')}</span></td>
+      <td class="tm">${h.open == null ? bi('closed') : esc(h.text)}</td></tr>`).join('');
+
   const dayRows = p.hours.map(h => `<tr data-d="${h.day}">
       <th scope="row">${biText(DAYS.en[h.day], DAYS.zh[h.day])}</th>
       <td>${h.open == null ? bi('closed') : esc(h.text)}</td></tr>`).join('');
 
   const menuRows = p.dishes.map(d => `<li>
-      <span class="nm">${esc(d.title)}</span><span class="led"></span>
-      <span class="ct">${p.isFood ? `${d.mentions}&times;` : bi('enquire')}</span></li>`).join('');
+      <span class="nm">${d.titleEn
+        ? biText(esc(d.titleEn), esc(d.title)) + biText(esc(d.title), esc(d.titleEn), { tag: 'i', cls: 'en' })
+        : esc(d.title)}</span><span class="led"></span>
+      <span class="ct">${d.supplied ? bi('tbc') : p.isFood ? `${d.mentions}&times;` : bi('enquire')}</span></li>`).join('');
 
   // The first photo is the shopfront if there is one: at the top of the page
   // it does the job the name alone cannot — telling someone walking down the
   // street that this is the door they are looking for.
   const heroShot = p.photos[0];
   const plates = p.photos.slice(1).map((ph, i) => `<figure>
-      <img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 2}" loading="lazy" decoding="async">
+      <img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 2}" decoding="async"${
+        ph.src.startsWith('data:') ? '' : ' loading="lazy"'}>
       ${ph.author ? `<figcaption>${esc(ph.author)}</figcaption>` : ''}</figure>`).join('');
 
   const quotes = p.quotes.map(q => `<figure>
       <blockquote>${esc(q.text)}</blockquote>
       <figcaption>${esc(q.author)}, Google</figcaption></figure>`).join('');
 
-  const chips = p.attrs.map(a => `<span class="chip">${esc(a)}</span>`).join('');
+  const chips = p.attrs.map(a => ATTR_ZH[a]
+    ? biText(esc(a), esc(ATTR_ZH[a]), { tag: 'span', cls: 'chip' })
+    : `<span class="chip">${esc(a)}</span>`).join('');
+  const supplied = p.dishes.some(d => d.supplied);
 
   const section = (id, kicker, title, body, aside = '') => `<section id="${id}">
     <div class="shead">
@@ -154,6 +177,24 @@ h1 em{font-style:normal;color:var(--cool)}
 .chip{font-family:var(--label);font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--dim);border:1px solid var(--line);padding:7px 13px}
 
+.week{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0}
+#daybar{width:100%;border-collapse:collapse;font-family:var(--label);font-size:.7rem;max-width:none}
+#daybar th{width:3.4em;text-align:left;font-weight:400;color:var(--dim);letter-spacing:.12em;
+  text-transform:uppercase;padding:3px 0;border:0}
+#daybar td{padding:3px 0;text-align:left;border:0}
+#daybar .tm{width:16.5em;font-size:.64rem;text-align:right;color:var(--dim);letter-spacing:.03em;font-variant-numeric:tabular-nums}
+.track{position:relative;display:block;height:7px;margin:0 14px;background:var(--line);border-radius:1px}
+.fill{position:absolute;top:0;bottom:0;background:var(--dim);border-radius:1px}
+#daybar tr[data-today] th{color:var(--ink);font-weight:700}
+#daybar tr[data-today] .fill{background:var(--cool)}
+#daybar tr[data-today] .tm{color:var(--ink)}
+.axis{position:relative;height:1.1em;margin:8px 16.5em 0 3.4em}
+.tick{position:absolute;transform:translateX(-50%);font-family:var(--label);font-size:.6rem;color:var(--dim)}
+.tick i{display:block;width:1px;height:4px;background:var(--line);margin:0 auto 3px}
+#nowline{position:absolute;top:-4px;bottom:0;width:1px;background:var(--hot)}
+#nowline::before{content:"";position:absolute;top:-3px;left:-2.5px;width:6px;height:6px;
+  border-radius:50%;background:var(--hot)}
+@media(max-width:620px){#daybar .tm{display:none}.axis{margin-right:0}}
 .shot{margin-bottom:clamp(30px,5vw,54px);background:var(--sand);overflow:hidden}
 .shot img{display:block;width:100%;height:clamp(240px,42vw,520px);object-fit:cover;object-position:center 62%}
 
@@ -199,6 +240,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
 
 /* draft blanks: loud on purpose — they are the agenda for the meeting */
 .rule{display:inline-block;height:1.1em;min-width:11em;border-bottom:1px dashed var(--hot);vertical-align:-.15em}
+.tbdnote{color:var(--hot)}
+.nm .en{display:block;font-style:normal;font-family:var(--label);font-size:.62rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);margin-top:3px}
+html[data-lang="en"] .nm .en [data-l="en"],
+html[data-lang="zh"] .nm .en [data-l="zh"]{display:block}
 .tbd{font-family:var(--label);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--hot);border:1px dashed var(--hot);padding:6px 12px;display:inline-block}
 .blank{border:1px dashed var(--line);min-height:64px;display:flex;align-items:center;
@@ -251,13 +297,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
 
     <div class="facts">
       ${open ? '<span class="on" id="status2"></span>' : ''}
-      ${p.tagline ? `<span>${esc(p.tagline)}</span>` : ''}
+      ${p.tagline ? (p.taglineZh ? biText(esc(p.tagline), esc(p.taglineZh)) : `<span>${esc(p.tagline)}</span>`) : ''}
       ${p.rating ? biText(`${p.rating} &#9733; &middot; ${p.reviews} Google reviews`,
                           `${p.rating} &#9733; &middot; ${p.reviews} 条 Google 评价`) : ''}
       ${!p.rating && !open ? `<span>${esc(p.shortAddress || p.address)}</span>` : ''}
     </div>
 
-    ${p.summary ? `<p class="blurb">${esc(p.summary)}</p>` : ''}
+    ${p.summary
+      ? (p.summaryZh
+          ? biText(esc(p.summary), esc(p.summaryZh), { tag: 'p', cls: 'blurb blk' })
+          : `<p class="blurb">${esc(p.summary)}</p>`)
+      : ''}
     ${draft && !p.summary ? `<p class="blurb">${tbd('One sentence about the room, in the owner’s words', '一句话介绍，用店家自己的说法')}</p>` : ''}
 
     <div class="acts">
@@ -267,6 +317,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
       ${hasMenu ? `<a class="btn" href="#menu">${bi('seeMenu')}</a>` : ''}
     </div>
 
+    ${open ? `<div class="week">
+      <table id="daybar">${barRows}</table>
+      <div class="axis">${ticks.join('')}<span id="nowline" hidden></span></div>
+    </div>` : ''}
+
     ${chips ? `<div class="chips">${chips}</div>` : ''}
   </div>
 
@@ -275,8 +330,9 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
   </div>` : ''}
 
   ${hasMenu ? section('menu', p.isFood ? 'menuKicker' : 'svcKicker', p.isFood ? 'menuTitle' : 'svcTitle',
-      `<ul>${menuRows}</ul>${bi('minedNote', { tag: 'p', cls: 'note blk' })}`,
-      p.reviews ? biText(`from ${p.reviews} reviews`, `取自 ${p.reviews} 条评价`) : '')
+      `<ul>${menuRows}</ul>${bi(supplied ? 'suppliedMenu' : 'minedNote', { tag: 'p', cls: 'note blk' })}`,
+      supplied ? biText(`${p.dishes.length} dishes · to confirm`, `${p.dishes.length} 道 · 待确认`)
+        : p.reviews ? biText(`from ${p.reviews} reviews`, `取自 ${p.reviews} 条评价`) : '')
     : draft ? section('menu', p.isFood ? 'menuKicker' : 'svcKicker', p.isFood ? 'menuTitle' : 'svcTitle',
       `<ul>${[1, 2, 3, 4, 5, 6].map(() => `<li>
            <span class="nm rule"></span><span class="led"></span>
@@ -287,7 +343,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
 
   ${hasPhotos ? section('gallery', 'roomKicker', 'roomTitle',
       `<div class="grid3">${plates}</div>${bi(p.photos.some(x => x.local) ? 'photoNoteOwn' : 'photoNote',
-        { tag: 'p', cls: 'note blk' })}`)
+        { tag: 'p', cls: 'note blk' })}`,
+      biText(`${p.photos.length - 1} photos`, `${p.photos.length - 1} 张`))
     : draft ? section('gallery', 'roomKicker', 'roomTitle',
       `<div class="blanks">
          <div class="blank">${tbd('Shopfront', '门头')}</div>
@@ -301,7 +358,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
       p.rating ? `${p.rating} &#9733; &middot; ${p.reviews}` : '') : ''}
 
   ${open ? section('hours', 'hoursKicker', 'hoursTitle',
-      `<div class="two"><table id="hours">${dayRows}</table><div></div></div>`)
+      `<div class="two"><table id="hours">${dayRows}</table><div></div></div>` +
+      (draft ? bi('sampleHours', { tag: 'p', cls: 'note blk tbdnote' }) : ''))
     : draft ? section('hours', 'hoursKicker', 'hoursTitle',
       `<div class="two"><table>${DAYS.en.map((en, d) => `<tr>
            <th scope="row">${biText(en, DAYS.zh[d])}</th>
@@ -315,7 +373,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
        <div>
          <p class="addr">${esc(p.address.replace(/,\s*Australia$/, ''))}</p>
          <div class="meta">
-           ${tel ? `<a href="${tel}">${esc(p.phone)}</a>` : draft ? tbd('Phone number', '电话号码') : ''}
+           ${tel ? `<a href="${tel}">${esc(p.phone)}</a>${
+             draft && p.demoPhone ? ' ' + tbd('Example number', '示例号码') : ''}` : draft ? tbd('Phone number', '电话号码') : ''}
            <a href="${mapsHref(p)}">${bi('openMaps')} &rarr;</a>
          </div>
        </div>
@@ -334,6 +393,16 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
 
 ${langScript(lang)}
 ${open ? statusScript(p) : ''}
+${open ? `<script>
+(function(){
+  var lo=${lo},hi=${hi},n=new Date(),c=n.getHours()+n.getMinutes()/60;
+  if(c<lo||c>hi)return;
+  var el=document.getElementById('nowline');
+  if(!el)return;
+  el.style.left=((c-lo)/(hi-lo)*100).toFixed(2)+'%';
+  el.hidden=false;
+})();
+</script>` : ''}
 <script>
 (function(){
   var bar=document.getElementById('bar'),top=document.getElementById('top');
@@ -371,7 +440,7 @@ ${open ? statusScript(p) : ''}
  */
 function statusScript(p) {
   const json = JSON.stringify(Object.fromEntries(
-    p.hours.map(h => [h.day, h.open == null ? null : [h.open, h.close]])));
+    p.hours.map(h => [h.day, h.spans.length ? h.spans : null])));
   const S = JSON.stringify({
     openNow: T.openNow, closed: T.closed, closedToday: T.closedToday,
     until: T.until, opens: T.opens, today: T.today, tomorrow: T.tomorrow,
@@ -381,12 +450,16 @@ function statusScript(p) {
   var h=${json},S=${S};
   var f=function(x){var m=Math.round((x%1)*60),H=Math.floor(x)%24,ap=H<12?'am':'pm',d=H%12||12;
     return d+':'+String(m).padStart(2,'0')+ap;};
-  var n=new Date(),d=n.getDay(),c=n.getHours()+n.getMinutes()/60,t=h[d];
-  var open=!!t&&c>=t[0]&&c<t[1];
+  var n=new Date(),d=n.getDay(),c=n.getHours()+n.getMinutes()/60,t=h[d],tm=h[(d+1)%7];
+  var cur=null,next=null,i;
+  if(t)for(i=0;i<t.length;i++){ if(c>=t[i][0]&&c<t[i][1]){cur=t[i];break;}
+    if(c<t[i][0]&&!next)next=t[i]; }
+  var open=!!cur;
   var say=function(i){
-    if(!t)return S.closedToday[i];
-    if(open)return S.openNow[i]+' · '+S.until[i]+' '+f(t[1]);
-    return S.closed[i]+' · '+S.opens[i]+' '+f(t[0])+' '+(c>=t[1]?S.tomorrow[i]:S.today[i]);
+    if(open)return S.openNow[i]+' · '+S.until[i]+' '+f(cur[1]);
+    if(next)return S.closed[i]+' · '+S.opens[i]+' '+f(next[0])+' '+S.today[i];
+    if(tm)return S.closed[i]+' · '+S.opens[i]+' '+f(tm[0][0])+' '+S.tomorrow[i];
+    return S.closedToday[i];
   };
   ['status','status2'].forEach(function(id){
     var el=document.getElementById(id);
@@ -400,7 +473,7 @@ function statusScript(p) {
       el.appendChild(s);
     });
   });
-  var r=document.querySelector('#hours [data-d="'+d+'"]');if(r)r.setAttribute('data-today','');
+  [].forEach.call(document.querySelectorAll('[data-d="'+d+'"]'),function(r){r.setAttribute('data-today','');});
 })();
 </script>`;
 }

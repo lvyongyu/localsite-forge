@@ -82,6 +82,8 @@ A listing with no `websiteUri` is the obvious case, but it isn't the only one:
 | `platform` | Points at a menu or booking host (mryum, square.site, Fresha…) | Yes — they're renting their presence |
 | `own` | A real domain of their own | No — filtered out |
 
+Opening hours carry **every** period the listing publishes, not one per day: a kitchen that serves lunch, shuts at 2:30 and reopens at 5 is described that way, and the live status line says *closed, opens 5:00pm* at three in the afternoon rather than claiming the place is open straight through. Keeping only the first period sent people to a locked door — the shape of nearly every suburban Chinese restaurant.
+
 Score weights what actually closes deals: review volume (log-scaled, as a proxy for foot traffic), rating above 4.0, price level, and **whether there's a phone number** — the difference between a pitch and a wish.
 
 ## What gets generated
@@ -128,6 +130,8 @@ node bin/forge.js site "15 Village Ave, Doncaster VIC 3108" --layout storefront 
 The split is deliberate: only the scaffolding is translated — navigation, section headings, buttons, weekdays, the open/closed line. **The shop's own words are never touched**: its trading name, the dishes mined from its reviews, and what customers wrote all stay exactly as written. Translating a business's own name is how you produce a page it doesn't recognise as its own.
 
 Pitch notes follow the same flag: `--lang zh` writes `pitch.md` in Chinese, and it is not a translation of the English one — the objections that actually come up across a counter in Box Hill ("我们有小红书就够了", "我亲戚会做网站", "我英文不好，看不懂后台") are different objections, and they get their own answers.
+
+Two more fixture escape hatches, for a shop the API has never heard of: `_menu` (a list of `{zh, en}` dish names, or plain strings) fills the menu section from names you read off the shop's own photographs — flagged `supplied`, rendered with a *to confirm* marker on every line, and the todo says where they came from; `_demo: {phone: true}` marks a phone number as a demo stand-in, which should only ever be a number from Australia's reserved fictitious `5550` range so a call button in a mock-up cannot ring a stranger.
 
 A fixture may also carry a `_zh` block: `category` for the kicker line, and `notes` — the hooks you saw standing at the door that no API returns (the awards on the wall, which neighbour on the strip already has a site). Notes reach the **pitch notes only**, never the page.
 

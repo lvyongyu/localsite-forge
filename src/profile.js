@@ -97,18 +97,31 @@ function fmtTime(h, m) {
 
 function buildHours(oh) {
   // rows[0..6] indexed Sunday..Saturday, matching JS getDay()
-  const rows = DAYS.map((label, d) => ({ day: d, label, text: 'Closed', open: null, close: null }));
+  const rows = DAYS.map((label, d) => ({ day: d, label, text: 'Closed', open: null, close: null, spans: [] }));
   for (const p of oh?.periods ?? []) {
     const d = p.open?.day;
     if (d == null) continue;
     const oH = p.open.hour ?? 0, oM = p.open.minute ?? 0;
     const cH = p.close?.hour, cM = p.close?.minute ?? 0;
-    rows[d].open = oH + oM / 60;
-    if (cH == null) { rows[d].close = 24; rows[d].text = 'Open 24 hours'; continue; }
-    rows[d].close = cH + cM / 60;
+    const o = oH + oM / 60;
+    if (cH == null) { rows[d].spans = [[o, 24]]; rows[d].text = 'Open 24 hours'; continue; }
+    let c = cH + cM / 60;
     // close-past-midnight (e.g. bars) — normalise so the JS status check works
-    if (rows[d].close <= rows[d].open) rows[d].close += 24;
-    rows[d].text = `${fmtTime(oH, oM)} – ${fmtTime(cH, cM)}`;
+    if (c <= o) c += 24;
+    rows[d].spans.push([o, c]);
+  }
+  for (const r of rows) {
+    if (!r.spans.length) continue;
+    r.spans.sort((a, b) => a[0] - b[0]);
+    // open/close stay the outer edges of the day: layouts that draw one bar,
+    // and the layout picker's "still serving at 6pm?" test, both read these.
+    r.open = r.spans[0][0];
+    r.close = r.spans[r.spans.length - 1][1];
+    if (r.text === 'Open 24 hours') continue;
+    r.text = r.spans
+      .map(([o, c]) => `${fmtTime(Math.floor(o), Math.round((o % 1) * 60))} – ` +
+                       `${fmtTime(Math.floor(c) % 24, Math.round((c % 1) * 60))}`)
+      .join(' · ');
   }
   return rows;
 }
@@ -190,15 +203,21 @@ export function buildProfile(place, opts = {}) {
   const attrs = ATTRS.filter(([k]) => place[k] === true).map(([, label]) => label);
 
   // A genuinely early opener is a real differentiator worth putting in the hero.
-  let hook = null;
-  if (earliest != null && earliest <= 6.5) hook = `Open from ${fmtTime(Math.floor(earliest), (earliest % 1) * 60)}`;
-  else if (openDays.length === 7) hook = 'Open seven days';
+  let hook = null, hookZh = null;
+  if (earliest != null && earliest <= 6.5) {
+    const t = fmtTime(Math.floor(earliest), (earliest % 1) * 60);
+    hook = `Open from ${t}`; hookZh = `${t} 就开门`;
+  } else if (openDays.length === 7) {
+    hook = 'Open seven days'; hookZh = '一周七天营业';
+  }
 
   return {
     id: place.id,
     name,
     tagline: hook ? `${hook}${openDays.length === 7 && hook !== 'Open seven days' ? ', seven days' : ''}` : '',
-    summary: place.editorialSummary?.text ?? '',
+    taglineZh: hookZh ? `${hookZh}${openDays.length === 7 && hookZh !== '一周七天营业' ? '，一周七天' : ''}` : '',
+    summary: place.editorialSummary?.text ?? place._zh?.summaryEn ?? '',
+    summaryZh: place._zh?.summary ?? '',
     address: place.formattedAddress ?? '',
     shortAddress: place.shortFormattedAddress ?? place.formattedAddress ?? '',
     suburb: suburbOf(place.formattedAddress),
@@ -211,11 +230,20 @@ export function buildProfile(place, opts = {}) {
     // the API returns neither. Hooks reach the pitch notes only — never the page.
     categoryZh: place._zh?.category ?? '',
     notes: place._zh?.notes ?? [],
+    demoPhone: place._demo?.phone === true,
     types: place.types ?? [],
     priceLevel: place.priceLevel ?? '',
     hours,
     attrs,
-    dishes: opts.noDishes ? [] : mineOfferings(place.reviews),
+    // A hand-written list beats mining when you have one — walking past the
+    // window and reading the photos is a better source than review text. It
+    // is still unverified: only the owner's own list is authoritative.
+    dishes: opts.noDishes ? []
+      : Array.isArray(place._menu) && place._menu.length
+        ? place._menu.slice(0, 12).map(d => typeof d === 'string'
+            ? { title: d, titleEn: '', unverified: true, supplied: true }
+            : { title: d.zh ?? d.en ?? '', titleEn: d.en ?? '', unverified: true, supplied: true })
+        : mineOfferings(place.reviews),
     // Drives the section heading: a barber does not have "a menu".
     isFood: (place.types ?? []).some(t =>
       /cafe|restaurant|bar|bakery|food|meal_|coffee|ice_cream|pizza/.test(t)),
@@ -232,6 +260,8 @@ export function contentTodo(p) {
   const todo = [];
   const noun = p.isFood ? 'Menu items' : 'Services';
   if (!p.dishes.length) todo.push(`${noun} — the API provides none. Get the real list from the owner.`);
+  else if (p.dishes.some(d => d.supplied))
+    todo.push(`Confirm the ${p.dishes.length} ${noun.toLowerCase()} below with the owner — they were read off photographs, not supplied by the kitchen. Wrong dish names on a page you hand to a chef is the fastest way to lose the room.`);
   else todo.push(`Confirm the ${p.dishes.length} ${noun.toLowerCase()} below with the owner (mined from review text, NOT authoritative)`);
   todo.push('Prices — deliberately omitted. Never guess these.');
   if (p.photos.length && p.photos.some(x => x.local))
@@ -241,7 +271,8 @@ export function contentTodo(p) {
   else
     todo.push('Photos — none bundled. Google\'s photos belong to their authors; get the owner\'s own shots.');
   if (!p.summary) todo.push('Hero description — no editorial summary from Google; the placeholder needs a rewrite.');
-  if (!p.phone) todo.push('Phone number — none on the listing. Click-to-call is disabled until you have one.');
+  if (p.demoPhone) todo.push('Phone number — the page currently shows a RESERVED FICTITIOUS number (the 5550 range, which cannot ring anyone). Replace it with the shop\'s real number before this leaves your hands.');
+  else if (!p.phone) todo.push('Phone number — none on the listing. Click-to-call is disabled until you have one.');
   if (!p.hours.some(h => h.open != null)) todo.push('Opening hours — none on the listing. The hours table is hidden.');
   return todo;
 }

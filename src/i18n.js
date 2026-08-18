@@ -66,7 +66,21 @@ export const T = {
   draftNote:   ['Draft — the marked fields are filled in with the owner.',
                 '草稿 — 标记处与店家当面确认后填写。'],
   tbc:         ['To confirm', '待确认'],
+  sampleHours: ['Example hours — replace with the real ones before this goes anywhere near the public.',
+                '以上为示例时间，请店家当场改成实际营业时间；对外之前必须替换。'],
+  suppliedMenu:['Read off the shop’s own photographs, not supplied by the kitchen — confirm every line with the owner. No prices are shown anywhere on this page.',
+                '以下菜名是照着店里自己的菜品照片认的，不是厨房给的清单，请逐道与店家确认。本页不显示任何价格。'],
   demoFooter:  ['Private demo — not indexed', '内部演示页 — 未被搜索引擎收录'],
+};
+
+// The attribute labels the API hands back are English. A page opened in
+// Chinese should not have a row of English chips under a Chinese headline.
+export const ATTR_ZH = {
+  'Dine-in': '堂食', 'Takeaway': '外带', 'Delivery': '外送',
+  'Outdoor seating': '户外座位', 'Bookings available': '可订位',
+  'Breakfast': '早餐', 'Brunch': '早午餐', 'Lunch': '午市', 'Dinner': '晚市',
+  'Vegetarian options': '素食选择', 'Espresso menu': '咖啡', 'Desserts': '甜品',
+  'Beer': '啤酒', 'Wine': '葡萄酒', 'Family friendly': '适合带小孩', 'Good for groups': '适合聚餐',
 };
 
 /** Pick one side of a pair. */

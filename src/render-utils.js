@@ -31,16 +31,23 @@ ${extraMeta}<script type="application/ld+json">${jsonInScript({
 /** Live open/closed, computed client-side from the real periods. */
 export function hoursScript(p, { statusId = 'status', tableId = 'hours', dotId = null } = {}) {
   if (!p.hours.some(h => h.open != null)) return '';
+  // Spans, not one pair: a restaurant that shuts between lunch and dinner is
+  // "closed, opens 5pm" at 3pm, not "open until 9:30pm".
   const json = JSON.stringify(Object.fromEntries(
-    p.hours.map(h => [h.day, h.open == null ? null : [h.open, h.close]])));
+    p.hours.map(h => [h.day, h.spans.length ? h.spans : null])));
   return `<script>
 (function(){
   var h=${json},el=document.getElementById(${JSON.stringify(statusId)});
   var f=function(x){var m=Math.round((x%1)*60),H=Math.floor(x)%24,ap=H<12?'am':'pm',d=H%12||12;
     return d+':'+String(m).padStart(2,'0')+ap;};
-  var n=new Date(),d=n.getDay(),c=n.getHours()+n.getMinutes()/60,t=h[d],open=!!t&&c>=t[0]&&c<t[1];
-  if(el){el.textContent=!t?'Closed today':open?'Open now until '+f(t[1])
-    :'Closed \\u00b7 opens '+f(t[0])+(c>=t[1]?' tomorrow':' today');
+  var n=new Date(),d=n.getDay(),c=n.getHours()+n.getMinutes()/60,t=h[d],tm=h[(d+1)%7];
+  var cur=null,next=null,i;
+  if(t)for(i=0;i<t.length;i++){ if(c>=t[i][0]&&c<t[i][1]){cur=t[i];break;}
+    if(c<t[i][0]&&!next)next=t[i]; }
+  var open=!!cur;
+  if(el){el.textContent=open?'Open now until '+f(cur[1])
+    :next?'Closed \u00b7 opens '+f(next[0])+' today'
+    :tm?'Closed \u00b7 opens '+f(tm[0][0])+' tomorrow':'Closed today';
     el.setAttribute('data-open',open?'yes':'no');}
   ${dotId ? `var dt=document.getElementById(${JSON.stringify(dotId)});if(dt&&!open)dt.setAttribute('data-shut','');` : ''}
   var r=document.querySelector('#${tableId} [data-d="'+d+'"]');if(r)r.setAttribute('data-today','');

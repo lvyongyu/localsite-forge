@@ -51,6 +51,29 @@ t('hours land on the right weekday', () => {
   assert.equal(h[0].text, '8:00am – 2:00pm');   // fixture: Sunday 8-2
   assert.equal(h[6].text, '6:00am – 3:00pm');   // fixture: Saturday 6-3
 });
+t('two sittings a day survive: lunch, shut, dinner', () => {
+  // The overwhelming shape of a suburban Chinese restaurant. Keeping one
+  // period per weekday quietly published "open 11:30am – 9:30pm" for a
+  // kitchen that shuts at 2:30, and sent people to a locked door at 3pm.
+  const p = buildProfile({ displayName: { text: 'x' }, regularOpeningHours: { periods: [
+    { open: { day: 2, hour: 11, minute: 30 }, close: { day: 2, hour: 14, minute: 30 } },
+    { open: { day: 2, hour: 17, minute: 0 },  close: { day: 2, hour: 21, minute: 30 } },
+  ] } });
+  assert.deepEqual(p.hours[2].spans, [[11.5, 14.5], [17, 21.5]]);
+  assert.equal(p.hours[2].text, '11:30am – 2:30pm · 5:00pm – 9:30pm');
+  // open/close stay the outer edges, so the layout picker still sees a dinner venue
+  assert.equal(p.hours[2].open, 11.5);
+  assert.equal(p.hours[2].close, 21.5);
+});
+t('a fixture-supplied menu is used as-is and marked as supplied', () => {
+  const p = buildProfile({ displayName: { text: 'x' },
+    _menu: [{ zh: '小炒黄牛肉', en: 'Stir-fried beef' }, '干锅排骨'] });
+  assert.equal(p.dishes.length, 2);
+  assert.equal(p.dishes[0].title, '小炒黄牛肉');
+  assert.equal(p.dishes[0].titleEn, 'Stir-fried beef');
+  assert.ok(p.dishes.every(d => d.unverified && d.supplied), 'supplied menu not flagged');
+  assert.ok(contentTodo(p).some(x => /read off photographs/.test(x)), 'todo does not say where it came from');
+});
 t('dishes are mined and flagged unverified', () => {
   const d = buildProfile(azul).dishes;
   assert.ok(d.length >= 5, 'expected dishes, got ' + d.length);
