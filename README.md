@@ -55,7 +55,21 @@ Per business, into `output/<slug>/`:
 - **`pitch.md`** — pitch notes specific to that business, with hooks derived from its own data (an unusually early opening time, seven-day trading, outdoor seating), plus pricing structure and objection handling.
 - **`content-todo.md`** — everything a human still has to supply before it goes live.
 
-Sites don't all look alike. The palette comes from a colour word in the business name where there is one (*Azul*, *Verde*, *Nero* — Melbourne is full of them), otherwise from category plus a stable hash of the place id, so a given shop always renders the same way but its neighbour doesn't. Background motifs vary with the palette.
+### Three layouts, not one template recoloured
+
+Recolouring a single skeleton doesn't differentiate anything — the pages still read as one template. So the layout is chosen from **how the business is actually used**:
+
+| Layout | For | Why it's shaped that way |
+|---|---|---|
+| **poster** | Cafes, bakeries, espresso bars | Decided on the footpath. One screen, no scrolling, type at full size. Its one device is a **day-bar**: the week's trading hours drawn to scale with a marker at the current time — because "still open?" is the question, and it deserves a diagram. |
+| **billoffare** | Restaurants, trattorias, wine bars | Decided the night before, on a phone. A panel that never scrolls away carries address, hours and the phone number; the menu runs beside it set like a printed bill of fare, dot leaders and all. |
+| **card** | Barbers, salons, physio, dentists, mechanics | Nobody browses a physio. They arrive knowing what they want. Service list, hours up top, and the call button pinned in view at all times. |
+
+Selection uses trading hours rather than Google's `types` array, which tags nearly every cafe as a "restaurant" too — a place still serving at 6pm is somewhere you sit down; one shut by mid-afternoon is counter trade, whatever the listing says. Where two layouts genuinely both fit (a cafe with a substantial menu), a stable hash of the place id picks one, so a row of neighbouring cafes doesn't ship a row of identical pages.
+
+Palette works the same way: a colour word in the name wins where there is one (*Azul*, *Verde*, *Nero* — Melbourne is full of them), otherwise category plus the id hash. Each layout also carries its own type pairing, so the three don't just differ in colour — they differ in voice.
+
+Override with `--layout poster|billoffare|card` when you disagree.
 
 ## What this tool will not do
 
@@ -81,7 +95,7 @@ Worth knowing before you send anything:
 forge scan  --query <text> [--type <t>] [--min-rating <n>] [--min-reviews <n>] [--max <n>] [--out <path>]
 forge build <placeId>
 forge build --fixture <file>          offline, no API key
-forge build --from <leads.json> [--top <n>] [--price <n>] [--live] [--no-reviews] [--no-dishes]
+forge build --from <leads.json> [--top <n>] [--price <n>] [--layout <name>] [--live] [--no-reviews] [--no-dishes]
 forge demo
 ```
 
@@ -93,7 +107,9 @@ src/places.js     Places API (New) client — field masks drive billing
 src/scan.js       website classification + lead scoring
 src/profile.js    API payload -> site model; mines offerings, flags what's unverified
 src/theme.js      palette selection
-src/template.js   the renderer (everything external is HTML-escaped)
+src/template.js   layout selection
+src/layouts/      poster.js, billoffare.js, card.js
+src/render-utils.js  escaping, <head>, live open/closed script
 src/pitch.js      per-business pitch notes
 test/smoke.js     node test/smoke.js
 ```
@@ -105,6 +121,8 @@ node test/smoke.js
 ```
 
 Covers domain classification (including the substring trap where `matrix.com.au` must not read as a Twitter link), escaping of hostile business names and review text in both HTML and embedded JSON-LD, correct weekday alignment of opening hours, graceful degradation when a listing has no phone or no hours, and that neighbouring shops don't generate matching pages.
+
+Two regressions are pinned there deliberately: a cafe that Google also tags `restaurant` but which shuts at 3pm must not be treated as a dinner venue, and HTML entities in the attribute line must survive as entities rather than being double-escaped into visible `&middot;` text. Both shipped once.
 
 ## License
 

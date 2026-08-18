@@ -2,7 +2,7 @@
 import assert from 'node:assert';
 import { buildProfile, contentTodo } from '../src/profile.js';
 import { pickTheme } from '../src/theme.js';
-import { renderSite } from '../src/template.js';
+import { renderSite, pickLayout, layoutNames } from '../src/template.js';
 import { classifyWeb, filterAndRank } from '../src/scan.js';
 import fs from 'node:fs';
 
@@ -108,13 +108,52 @@ t('same shop twice -> identical theme (stable, not random)', () => {
   const b = pickTheme({ name:'Stillman Cafe', types:['cafe'], id:'c3' });
   assert.equal(a.name, b.name);
 });
-t('generated pages differ in markup, not just colour', () => {
+t('generated pages differ structurally, not just in colour', () => {
   const a = site(azul);
   const b = site({ ...azul, id:'ZZ', displayName:{text:'Nero Barbers'}, types:['hair_salon'],
+                   regularOpeningHours:{periods:[{open:{day:2,hour:9,minute:0},close:{day:2,hour:18,minute:0}}]},
                    editorialSummary:{text:'Neighbourhood barbershop.'} });
   assert.notEqual(a, b);
-  assert.ok(a.includes('url(#pat)') && b.includes('url(#pat)'));
-  assert.notEqual(a.match(/<pattern id="pat"[^>]*>/)[0], b.match(/<pattern id="pat"[^>]*>/)[0]);
+  // Different layouts, not the same skeleton recoloured.
+  assert.ok(a.includes('<main') && b.includes('class="dock"'), 'both pages used the same structure');
+});
+
+console.log('\nlayout selection');
+t('appointment trade -> card', () => {
+  assert.equal(pickLayout({ isFood:false, types:['hair_salon'], hours:[], attrs:[], dishes:[] }).name, 'card');
+});
+t('open into the evening -> billoffare', () => {
+  const hours = [{ day:5, open:17.5, close:23 }];
+  assert.equal(pickLayout({ isFood:true, types:['restaurant'], hours, attrs:[], dishes:[], id:'a' }).name, 'billoffare');
+});
+t('REGRESSION: a cafe tagged "restaurant" but shut by 3pm is not a sit-down venue', () => {
+  // Google tags most cafes as restaurant too. Trading hours are the honest
+  // signal — this exact case sent Cafe Azul to the wrong layout once.
+  const hours = [{ day:1, open:6, close:14.5 }, { day:6, open:6, close:15 }];
+  const got = pickLayout({ isFood:true, types:['cafe','restaurant','food'], hours,
+                           attrs:['Breakfast','Brunch'], dishes:[], id:'azul' });
+  assert.notEqual(got.name, 'billoffare', 'a 6am-3pm cafe was classed as a dinner venue');
+});
+t('every layout renders, escapes, and defaults to noindex', () => {
+  const p = buildProfile(azul);
+  const th = pickTheme({ name:p.name, types:p.types, id:p.id });
+  for (const name of layoutNames) {
+    const html = renderSite({ ...p, name: 'Bad <script>alert(1)</script> Cafe' }, th, { layout: name });
+    assert.ok(html.startsWith('<!doctype html>'), name + ' produced no document');
+    assert.ok(html.includes('noindex'), name + ' is missing the noindex default');
+    assert.ok(!html.includes('<script>alert(1)'), name + ' leaked a script tag');
+    assert.ok(/<\/html>\s*$/.test(html), name + ' document is unterminated');
+  }
+});
+t('--live drops noindex in every layout', () => {
+  const p = buildProfile(azul);
+  const th = pickTheme({ name:p.name, types:p.types, id:p.id });
+  for (const name of layoutNames)
+    assert.ok(!renderSite(p, th, { layout:name, live:true }).includes('noindex'), name);
+});
+t('html entities in attributes survive as entities, not literal text', () => {
+  const html = renderSite(buildProfile(azul), pickTheme({name:'x',types:[],id:'x'}), { layout:'billoffare' });
+  assert.ok(!html.includes('&amp;middot;'), 'entity was double-escaped into visible text');
 });
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

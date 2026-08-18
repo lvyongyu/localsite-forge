@@ -5,7 +5,7 @@ import { searchText, placeDetails } from '../src/places.js';
 import { filterAndRank, toCsv } from '../src/scan.js';
 import { buildProfile, contentTodo } from '../src/profile.js';
 import { pickTheme } from '../src/theme.js';
-import { renderSite } from '../src/template.js';
+import { renderSite, pickLayout } from '../src/template.js';
 import { buildPitch } from '../src/pitch.js';
 
 // Minimal .env loader — avoids a dependency for one line of work.
@@ -44,6 +44,7 @@ localsite-forge — find local businesses with no website, then build them one.
       --no-reviews        omit Google review quotes (see attribution note in README)
       --no-dishes         omit the mined menu section entirely
       --price <n>         headline price in the generated pitch (default 1000)
+      --layout <name>     override: poster | billoffare | card
       --live              drop the noindex tag (ONLY after the owner has paid
                           and agreed — see "Before you publish" in the README)
 
@@ -95,16 +96,19 @@ async function doScan() {
 function emit(place, outDir) {
   const profile = buildProfile(place, { noReviews: has('no-reviews'), noDishes: has('no-dishes') });
   const theme = pickTheme({ name: profile.name, types: profile.types, id: profile.id });
+  const forced = flag('layout');
+  const lay = forced ? { name: forced, reason: 'forced with --layout' } : pickLayout(profile);
   const dir = path.join(outDir, slug(profile.name));
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'index.html'), renderSite(profile, theme, { live: has('live') }));
+  fs.writeFileSync(path.join(dir, 'index.html'),
+    renderSite(profile, theme, { live: has('live'), layout: lay.name }));
 
   fs.writeFileSync(path.join(dir, 'pitch.md'), buildPitch(profile, { price: Number(flag('price', 1000)) }));
 
   const todo = contentTodo(profile);
   fs.writeFileSync(path.join(dir, 'content-todo.md'),
     `# ${profile.name} — before this goes live\n\n` +
-    `Theme: **${theme.name}** (${theme.reason})\n\n` +
+    `Layout: **${lay.name}** (${lay.reason})\nPalette: **${theme.name}** (${theme.reason})\n\n` +
     todo.map(t => `- [ ] ${t}`).join('\n') +
     (profile.dishes.length
       ? `\n\n## Menu items mined from review text (UNVERIFIED)\n\n` +
@@ -114,7 +118,9 @@ function emit(place, outDir) {
     `- Phone: ${profile.phone || '(none on listing)'}\n` +
     `- Existing web: ${profile.existingWeb || '(none — this is the pitch)'}\n`);
 
-  console.log(`  ${profile.name}  ->  ${path.relative(process.cwd(), dir)}/index.html   [theme: ${theme.name}]`);
+  console.log(`  ${profile.name}  ->  ${path.relative(process.cwd(), dir)}/index.html`);
+  console.log(`     layout: ${lay.name} — ${lay.reason}`);
+  console.log(`     palette: ${theme.name} — ${theme.reason}`);
   if (todo.length) console.log(`     ${todo.length} item(s) need a human — see content-todo.md`);
   return dir;
 }

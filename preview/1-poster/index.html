@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Cafe Azul — Richmond</title>
+<meta name="description" content="Relaxed coffee and brunch destination with large windows, patterned tiles and a leafy courtyard.">
+<meta property="og:title" content="Cafe Azul">
+<meta property="og:description" content="Relaxed coffee and brunch destination with large windows, patterned tiles and a leafy courtyard.">
+<meta property="og:type" content="website">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"Cafe Azul","address":"346 Bridge Rd, Richmond VIC 3121, Australia","telephone":"(03) 9421 5959","aggregateRating":{"@type":"AggregateRating","ratingValue":4.5,"reviewCount":318},"geo":{"@type":"GeoCoordinates","latitude":-37.819071,"longitude":145.0029114}}</script>
+<style>
+:root{
+  --ground:#fdfaf4; --ink:#12303a; --dim:#5a6b72; --line:#12303a22;
+  --hot:#c9694a; --cool:#1d5f7a;
+  --display:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+  --label:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0d1f26; --ink:#ede4d5; --dim:#8c979c; --line:#ede4d522; --cool:#5fb6d4;
+}}
+:root[data-theme="dark"]{
+  --ground:#0d1f26; --ink:#ede4d5; --dim:#8c979c; --line:#ede4d522; --cool:#5fb6d4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--display);
+  min-height:100vh;display:flex;flex-direction:column;padding:clamp(20px,4vw,44px);
+  -webkit-font-smoothing:antialiased}
+
+*:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+a{color:inherit}
+.rail{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--label);font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.rail a{text-decoration:none}
+.rail a:hover{color:var(--hot)}
+main{flex:1;display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(28px,7vh,72px) 0;gap:clamp(22px,4vh,40px)}
+h1{font-size:clamp(3.1rem,15vw,11rem);line-height:.82;font-weight:800;
+  letter-spacing:-.045em;text-transform:uppercase;text-wrap:balance;
+  overflow-wrap:break-word;hyphens:none}
+h1 em{font-style:normal;color:var(--cool)}
+.sub{font-family:var(--label);font-size:clamp(.7rem,1.5vw,.84rem);letter-spacing:.24em;
+  text-transform:uppercase;color:var(--dim);display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline}
+.sub .now{color:var(--ink);font-weight:600}
+.sub .now[data-open="yes"]{color:var(--cool)}
+.sub .now[data-open="no"]{color:var(--hot)}
+
+/* the day-bar */
+.bar{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0}
+table{width:100%;border-collapse:collapse;font-family:var(--label);font-size:.7rem}
+th{width:2.6em;text-align:left;font-weight:400;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;padding:3px 0}
+td{padding:3px 0}
+.tm{width:11em;text-align:right;color:var(--dim);letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.track{position:relative;display:block;height:7px;margin:0 14px;background:var(--line);border-radius:1px}
+.fill{position:absolute;top:0;bottom:0;background:var(--dim);border-radius:1px}
+tr[data-today] th{color:var(--ink);font-weight:700}
+tr[data-today] .fill{background:var(--cool)}
+tr[data-today] .tm{color:var(--ink)}
+.axis{position:relative;height:1.1em;margin:8px 2.6em 0 2.6em}
+.tick{position:absolute;transform:translateX(-50%);font-family:var(--label);font-size:.6rem;color:var(--dim)}
+.tick i{display:block;width:1px;height:4px;background:var(--line);margin:0 auto 3px}
+#nowline{position:absolute;top:-4px;bottom:0;width:1px;background:var(--hot)}
+#nowline::before{content:"";position:absolute;top:-3px;left:-2.5px;width:6px;height:6px;
+  border-radius:50%;background:var(--hot)}
+
+.run{font-size:clamp(.95rem,2.2vw,1.35rem);line-height:1.5;color:var(--dim);
+  max-width:44ch;text-wrap:pretty}
+.run span{white-space:nowrap}
+.run i{font-style:normal;color:var(--hot);padding:0 .5em}
+.acts{display:flex;gap:12px;flex-wrap:wrap;padding-top:4px}
+.acts a{font-family:var(--label);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+  text-decoration:none;padding:14px 26px;border:1px solid var(--ink);transition:.15s}
+.acts a:hover{background:var(--ink);color:var(--ground)}
+.acts a.hot{background:var(--hot);border-color:var(--hot);color:#fff}
+.acts a.hot:hover{filter:brightness(1.1)}
+footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--label);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+@media(max-width:560px){.tm{display:none}.track{margin-right:0}}
+</style>
+</head>
+<body>
+<div class="rail">
+  <span>346 Bridge Rd, Richmond</span>
+  <a href="tel:+61394215959">(03) 9421 5959</a>
+</div>
+
+<main>
+  <h1>Cafe <em>Azul</em></h1>
+
+  <div class="sub">
+    <span class="now" id="status"></span>
+    <span>Open from 6:00am, seven days</span>
+    <span>4.5 &#9733; &middot; 318 reviews</span>
+  </div>
+
+  <div class="bar">
+    <table id="hours"><tr data-d="0">
+      <th scope="row">Sun</th>
+      <td><span class="track"><span class="fill" style="left:22.22%;width:66.67%"></span></span></td>
+      <td class="tm">8:00am – 2:00pm</td></tr><tr data-d="1">
+      <th scope="row">Mon</th>
+      <td><span class="track"><span class="fill" style="left:0.00%;width:94.44%"></span></span></td>
+      <td class="tm">6:00am – 2:30pm</td></tr><tr data-d="2">
+      <th scope="row">Tue</th>
+      <td><span class="track"><span class="fill" style="left:0.00%;width:94.44%"></span></span></td>
+      <td class="tm">6:00am – 2:30pm</td></tr><tr data-d="3">
+      <th scope="row">Wed</th>
+      <td><span class="track"><span class="fill" style="left:0.00%;width:94.44%"></span></span></td>
+      <td class="tm">6:00am – 2:30pm</td></tr><tr data-d="4">
+      <th scope="row">Thu</th>
+      <td><span class="track"><span class="fill" style="left:0.00%;width:94.44%"></span></span></td>
+      <td class="tm">6:00am – 2:30pm</td></tr><tr data-d="5">
+      <th scope="row">Fri</th>
+      <td><span class="track"><span class="fill" style="left:0.00%;width:94.44%"></span></span></td>
+      <td class="tm">6:00am – 2:30pm</td></tr><tr data-d="6">
+      <th scope="row">Sat</th>
+      <td><span class="track"><span class="fill" style="left:0.00%;width:100.00%"></span></span></td>
+      <td class="tm">6:00am – 3:00pm</td></tr></table>
+    <div class="axis"><span class="tick" style="left:0.00%">
+      <i></i><b>6a</b></span><span class="tick" style="left:22.22%">
+      <i></i><b>8a</b></span><span class="tick" style="left:44.44%">
+      <i></i><b>10a</b></span><span class="tick" style="left:66.67%">
+      <i></i><b>12p</b></span><span class="tick" style="left:88.89%">
+      <i></i><b>2p</b></span><span id="nowline" hidden></span></div>
+  </div>
+
+  <p class="run"><span>Farmers Breakfast</span><i>/</i><span>Smashed Avocado</span><i>/</i><span>Scrambled Eggs</span><i>/</i><span>Acai Bowl</span><i>/</i><span>Sausage Roll</span><i>/</i><span>Flat White</span><i>/</i><span>Cappuccino</span><i>/</i><span>Muffin</span></p>
+
+  <div class="acts">
+    <a class="hot" href="tel:+61394215959">Call the shop</a>
+    <a href="https://www.google.com/maps/search/?api=1&amp;query=Cafe%20Azul%20346%20Bridge%20Rd%2C%20Richmond%20VIC%203121%2C%20Australia">Directions</a>
+  </div>
+</main>
+
+<footer>
+  <span>346 Bridge Rd, Richmond VIC 3121, Australia</span>
+  <span>Dine-in / Takeaway / Delivery</span>
+</footer>
+
+<script>
+(function(){
+  var h={"0":[8,14],"1":[6,14.5],"2":[6,14.5],"3":[6,14.5],"4":[6,14.5],"5":[6,14.5],"6":[6,15]},el=document.getElementById("status");
+  var f=function(x){var m=Math.round((x%1)*60),H=Math.floor(x)%24,ap=H<12?'am':'pm',d=H%12||12;
+    return d+':'+String(m).padStart(2,'0')+ap;};
+  var n=new Date(),d=n.getDay(),c=n.getHours()+n.getMinutes()/60,t=h[d],open=!!t&&c>=t[0]&&c<t[1];
+  if(el){el.textContent=!t?'Closed today':open?'Open now until '+f(t[1])
+    :'Closed \u00b7 opens '+f(t[0])+(c>=t[1]?' tomorrow':' today');
+    el.setAttribute('data-open',open?'yes':'no');}
+  
+  var r=document.querySelector('#hours [data-d="'+d+'"]');if(r)r.setAttribute('data-today','');
+})();
+</script>
+<script>
+(function(){
+  var lo=6,hi=15,n=new Date(),c=n.getHours()+n.getMinutes()/60;
+  if(c<lo||c>hi)return;
+  var el=document.getElementById('nowline');
+  el.style.left=((c-lo)/(hi-lo)*100).toFixed(2)+'%';
+  el.hidden=false;
+})();
+</script>
+</body>
+</html>
