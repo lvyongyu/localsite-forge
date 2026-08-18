@@ -54,7 +54,7 @@ export function render(p, t, opts = {}) {
 
   const plates = p.photos.map((ph, i) => `<figure>
       <img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 1}" loading="lazy" decoding="async">
-      <figcaption>${esc(ph.author)}</figcaption></figure>`).join('');
+      ${ph.author ? `<figcaption>${esc(ph.author)}</figcaption>` : ''}</figure>`).join('');
 
   const quotes = p.quotes.map(q => `<figure>
       <blockquote>${esc(q.text)}</blockquote>
@@ -260,7 +260,8 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
                 { tag: 'p', cls: 'note blk' })}`) : ''}
 
   ${hasPhotos ? section('gallery', 'roomKicker', 'roomTitle',
-      `<div class="grid3">${plates}</div>${bi('photoNote', { tag: 'p', cls: 'note blk' })}`)
+      `<div class="grid3">${plates}</div>${bi(p.photos.some(x => x.local) ? 'photoNoteOwn' : 'photoNote',
+        { tag: 'p', cls: 'note blk' })}`)
     : draft ? section('gallery', 'roomKicker', 'roomTitle',
       `<div class="blanks">
          <div class="blank">${tbd('Shopfront', '门头')}</div>

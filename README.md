@@ -138,6 +138,14 @@ Listing photos are pulled so an owner sees their own shop in the mock-up rather 
 - **Nobody appears on a generated page.** Every downloaded image is run through Apple's Vision framework (`tools/detect-people.swift`) for faces *and* human bodies — the common listing photo is a salon client shot from behind, which registers zero faces — and any hit is deleted. It **fails closed**: if the detector is missing or errors, no photo is used at all.
 - **Deleting a photo sticks.** If `photos/` already exists it is treated as reviewed: nothing is re-downloaded, so a shot you threw out doesn't come back on the next build.
 
+### Photos you already have
+
+`--photos-dir <dir>` uses image files from a folder instead of the API — the owner's own shots, or images saved off the listing by hand where the API is out of reach (its photo CDN is blocked on plenty of networks, and photo media is billed per request anyway). They are copied in, embedded when the build is `--flat`, and captioned only if you pass `--photo-credit`.
+
+These files are **not** run through the people detector: whoever put them in the folder looked at them, which is a stronger check than Vision gives us and the only one available off macOS. `content-todo.md` records that the screening did not run, and says plainly that a shot taken by a reviewer belongs to that reviewer — the owner's own photos are the only ones that survive the site going live.
+
+### The detector
+
 The detector is a small Swift binary and needs macOS. Build it once:
 
 ```bash
@@ -184,6 +192,7 @@ build options, common to every form above:
   --out <dir>        --layout poster|billoffare|card|storefront   --price <n>
   --lang en|zh       --draft                                      --flat
   --inline-photos    --photos <n> | --no-photos
+  --photos-dir <dir> --photo-credit <s>
   --no-reviews       --no-dishes    --refresh    --live
 ```
 

@@ -28,7 +28,7 @@ export function render(p, t, opts = {}) {
   const rest = p.photos.slice(1);
   const plates = rest.length ? `<div class="plates">${rest.map((ph, i) => `
     <figure><img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 2}" loading="lazy" decoding="async">
-      <figcaption>${esc(ph.author)} &middot; Google</figcaption></figure>`).join('')}</div>` : '';
+      ${ph.author ? `<figcaption>${esc(ph.author)} &middot; Google</figcaption>` : ''}</figure>`).join('')}</div>` : '';
 
   const quotes = p.quotes.map(q =>
     `<figure><blockquote>${esc(q.text)}</blockquote>

@@ -5,7 +5,7 @@ import { pickTheme } from '../src/theme.js';
 import { renderSite, pickLayout, layoutNames } from '../src/template.js';
 import { classifyWeb, filterAndRank } from '../src/scan.js';
 import { slug, dirFor } from '../src/render-utils.js';
-import { rejectPeople, inlinePhotos } from '../src/photos.js';
+import { rejectPeople, inlinePhotos, localPhotos } from '../src/photos.js';
 import { renderRoster } from '../src/roster.js';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -173,6 +173,28 @@ t('a flat page carries no external requests', () => {
     assert.ok(!/<(script|img|link)[^>]+(src|href)="(?!data:|tel:|https:\/\/www\.google\.com)/.test(html),
       'flat page pulls something in from outside itself');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+t('photos supplied by hand are used as given, and say so', () => {
+  const src = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-src-'));
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-out-'));
+  try {
+    fs.writeFileSync(path.join(src, 'b.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    fs.writeFileSync(path.join(src, 'a.jpg'), Buffer.from([0xff, 0xd8, 0xff]));
+    fs.writeFileSync(path.join(src, 'notes.txt'), 'ignore me');
+    const got = localPhotos(src, out, { limit: 3 });
+    assert.equal(got.length, 2, 'wrong file count: ' + JSON.stringify(got));
+    assert.ok(got.every(g => g.local === true), 'not marked as hand-supplied');
+    assert.ok(fs.existsSync(path.join(out, 'photos', '1.jpg')), 'file not copied');
+    // The extension has to survive: a PNG inlined as image/jpeg renders as nothing.
+    assert.ok(inlinePhotos(got, out)[1].src.startsWith('data:image/png;base64,'),
+      inlinePhotos(got, out)[1].src.slice(0, 30));
+    // And the todo list must not claim a screening that never ran.
+    const todo = contentTodo({ ...buildProfile(azul), photos: got });
+    assert.ok(todo.some(x => /NOT screened/.test(x)), 'todo still claims the photos were screened');
+  } finally {
+    fs.rmSync(src, { recursive: true, force: true });
+    fs.rmSync(out, { recursive: true, force: true });
+  }
 });
 t('inlined photos become data URIs, unreadable ones are dropped', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-inline-'));

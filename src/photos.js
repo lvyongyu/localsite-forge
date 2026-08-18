@@ -133,7 +133,35 @@ export function inlinePhotos(photos, dir) {
   return photos.map(ph => {
     try {
       const b64 = fs.readFileSync(path.join(dir, ph.src)).toString('base64');
-      return { ...ph, src: `data:image/jpeg;base64,${b64}` };
+      return { ...ph, src: `data:${mimeOf(ph.src)};base64,${b64}` };
     } catch { return null; }
   }).filter(Boolean);
+}
+
+const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
+const mimeOf = f => MIME[path.extname(f).toLowerCase()] ?? 'image/jpeg';
+
+/**
+ * Photos you already have on disk: the owner's own shots, or images saved
+ * off the listing by hand where the API is out of reach.
+ *
+ * These are NOT run through the people detector. Whoever put a file in this
+ * folder looked at it — that is a stronger check than Vision gives us, and
+ * it is the only one available off macOS. The build says so out loud and
+ * content-todo.md records it, because "a human checked" has to be true.
+ */
+export function localPhotos(fromDir, outDir, { limit = 3, credit = '' } = {}) {
+  const files = fs.readdirSync(fromDir)
+    .filter(f => /\.(jpe?g|png|webp)$/i.test(f))
+    .sort()
+    .slice(0, limit);
+  if (!files.length) return [];
+
+  const photoDir = path.join(outDir, 'photos');
+  fs.mkdirSync(photoDir, { recursive: true });
+  return files.map((f, i) => {
+    const dest = `${i + 1}${path.extname(f).toLowerCase()}`;
+    fs.copyFileSync(path.join(fromDir, f), path.join(photoDir, dest));
+    return { src: `photos/${dest}`, author: credit, authorUri: '', local: true, from: f };
+  });
 }

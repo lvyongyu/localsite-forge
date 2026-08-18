@@ -59,6 +59,8 @@ export const T = {
   reviewsFrom: ['Google reviews', '条 Google 评价'],
   photoNote:   ['Photos from the Google listing. The owner’s own shots go here before launch.',
                 '照片取自 Google 商家页面，上线前换成店家自己的照片。'],
+  photoNoteOwn:['Placed by hand for this draft. The owner’s own shots replace them before launch.',
+                '本稿图片为手动放入，上线前换成店家自己拍的照片。'],
   minedNote:   ['Taken from what customers wrote in their Google reviews — not a menu the owner supplied. Confirm every line. No prices appear anywhere on this page.',
                 '以下取自顾客在 Google 评论里写到的内容，并非店家提供的菜单，需逐条确认。本页不显示任何价格。'],
   draftNote:   ['Draft — the marked fields are filled in with the owner.',

@@ -19,7 +19,7 @@ export function render(p, t, opts = {}) {
   // that it delays the booking button.
   const band = p.photos.length ? `<div class="band">${p.photos.map((ph, i) => `
     <figure><img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 1}" loading="lazy" decoding="async">
-      <figcaption>${esc(ph.author)}</figcaption></figure>`).join('')}</div>` : '';
+      ${ph.author ? `<figcaption>${esc(ph.author)}</figcaption>` : ''}</figure>`).join('')}</div>` : '';
 
   const hourRows = p.hours.map(h =>
     `<tr data-d="${h.day}"><th scope="row">${h.label}</th><td>${esc(h.text)}</td></tr>`).join('');

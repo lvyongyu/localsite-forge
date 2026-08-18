@@ -230,7 +230,9 @@ export function contentTodo(p) {
   if (!p.dishes.length) todo.push(`${noun} — the API provides none. Get the real list from the owner.`);
   else todo.push(`Confirm the ${p.dishes.length} ${noun.toLowerCase()} below with the owner (mined from review text, NOT authoritative)`);
   todo.push('Prices — deliberately omitted. Never guess these.');
-  if (p.photos.length)
+  if (p.photos.length && p.photos.some(x => x.local))
+    todo.push(`Photos — ${p.photos.length} image(s) supplied by hand, NOT screened by the people detector. Check every one for customers or staff who did not agree to appear, and confirm you have the right to use them at all: a shot taken by a reviewer belongs to that reviewer, not to the shop. The owner's own photos are the only ones that survive the site going live.`);
+  else if (p.photos.length)
     todo.push(`Photos — ${p.photos.length} image(s) from the Google listing, auto-screened so none contain people. They still belong to whoever took them: fine for showing the owner, replace with their own shots before it goes live. See photos/ATTRIBUTION.txt.`);
   else
     todo.push('Photos — none bundled. Google\'s photos belong to their authors; get the owner\'s own shots.');

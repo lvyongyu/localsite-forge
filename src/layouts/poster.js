@@ -40,7 +40,7 @@ export function render(p, t, opts = {}) {
   // the day-bar depends on.
   const band = p.photos.length ? `<div class="band">${p.photos.map((ph, i) => `
     <figure><img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 1}" loading="lazy" decoding="async">
-      <figcaption>${esc(ph.author)}</figcaption></figure>`).join('')}</div>` : '';
+      ${ph.author ? `<figcaption>${esc(ph.author)}</figcaption>` : ''}</figure>`).join('')}</div>` : '';
 
   // Offerings as a single run of text, the way a shopfront lists them.
   const run = p.dishes.map(d => `<span>${esc(d.title)}</span>`).join('<i>/</i>');

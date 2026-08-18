@@ -9,7 +9,7 @@ import { renderSite, pickLayout } from '../src/template.js';
 import { buildPitch } from '../src/pitch.js';
 import { slug, dirFor } from '../src/render-utils.js';
 import { renderRoster } from '../src/roster.js';
-import { choosePhotos, fetchPhotos, inlinePhotos } from '../src/photos.js';
+import { choosePhotos, fetchPhotos, inlinePhotos, localPhotos } from '../src/photos.js';
 
 // Minimal .env loader — avoids a dependency for one line of work.
 try {
@@ -62,7 +62,12 @@ localsite-forge — find local businesses with no website, then build them one.
       --draft             mark the facts the listing does not carry as blanks
                           to fill in with the owner, instead of omitting them
       --refresh           bypass the details cache and re-fetch from the API
-      --photos <n>        images to pull per business (default 3, billed each)
+      --photos <n>        images to use per business (default 3; billed each
+                          when they come from the API)
+      --photos-dir <dir>  use image files you already have instead of the API:
+                          the owner's own shots, or ones saved off the listing
+                          by hand. Not people-screened — you looked at them.
+      --photo-credit <s>  caption to print under those images (default: none)
       --no-photos         skip images entirely
       --inline-photos     embed images as data URIs so the page needs no files
                           beside it
@@ -187,8 +192,14 @@ async function emit(place, outDir) {
   // a deletion that has to survive the next rebuild. Flat output embeds the
   // survivors as data URIs rather than linking to them.
   const shopDir = path.join(outDir, base);
+  const fromDir = flag('photos-dir');
   let photos = [];
-  if (!has('no-photos')) {
+  if (!has('no-photos') && fromDir) {
+    fs.mkdirSync(shopDir, { recursive: true });
+    photos = localPhotos(fromDir, shopDir, {
+      limit: Number(flag('photos', 3)), credit: flag('photo-credit', ''),
+    });
+  } else if (!has('no-photos')) {
     const want = choosePhotos(place, Number(flag('photos', 3)));
     if (want.length) {
       fs.mkdirSync(shopDir, { recursive: true });
@@ -233,7 +244,10 @@ async function emit(place, outDir) {
   console.log(`     palette: ${theme.name} — ${theme.reason}`);
   if (lay.name === 'storefront')
     console.log(`     opens in ${flag('lang', 'en') === 'zh' ? 'Chinese' : 'English'}, switch in the page`);
-  if (photos.length)
+  if (photos.length && photos[0].local)
+    console.log(`     ${photos.length} photo(s) from ${fromDir} — not screened, you looked at them` +
+      `${inline ? '; embedded in the page' : ''}`);
+  else if (photos.length)
     console.log(`     ${photos.length} photo(s) kept (people-free)${inline ? ', embedded in the page' : ''}`);
   if (todo.length) console.log(`     ${todo.length} item(s) need a human — see ${path.basename(out.todo)}`);
   return out.html;
