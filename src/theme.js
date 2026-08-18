@@ -34,6 +34,15 @@ const PALETTES = {
     sand: '#eceae6', cream: '#fbfaf8', muted: '#6a6a70', sage: '#7d7f74',
     dkBg: '#131315', dkFg: '#e8e6e2', dkCard: '#1e1e21', dkSand: '#26262a', dkBright: '#c9a869',
   },
+  // A warm red for the shops that are actually red: Sichuan and Hunan
+  // kitchens, roast houses, anywhere the food on the page is chilli-coloured.
+  // The others put a cool accent against a warm ground; this one does not.
+  chilli: {
+    name: 'chilli',
+    ink: '#39201b', primary: '#8c2f2a', bright: '#c14a3a', accent: '#c2683f',
+    sand: '#f5e7dc', cream: '#fdf8f4', muted: '#78605a', sage: '#8a8253',
+    dkBg: '#22120f', dkFg: '#f1e2d8', dkCard: '#321915', dkSand: '#3d211b', dkBright: '#e3806a',
+  },
   harbour: {
     name: 'harbour',
     ink: '#12283a', primary: '#1f4d70', bright: '#3d84b8', accent: '#d08a42',
@@ -92,6 +101,13 @@ export function pickTheme({ name = '', types = [], id = '' }) {
   const all = Object.keys(PALETTES);
   const pal = all[hash(id || name) % all.length];
   return { ...PALETTES[pal], reason: 'stable hash of place id' };
+}
+
+/** Override the choice: `--palette terracotta` when you know better than the hash. */
+export function paletteByName(name) {
+  const pal = PALETTES[name];
+  if (!pal) throw new Error(`Unknown palette "${name}". Try: ${Object.keys(PALETTES).join(', ')}`);
+  return { ...pal, reason: 'forced with --palette' };
 }
 
 export const paletteNames = Object.keys(PALETTES);

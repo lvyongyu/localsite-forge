@@ -109,7 +109,7 @@ Recolouring a single skeleton doesn't differentiate anything — the pages still
 
 Selection uses trading hours rather than Google's `types` array, which tags nearly every cafe as a "restaurant" too — a place still serving at 6pm is somewhere you sit down; one shut by mid-afternoon is counter trade, whatever the listing says. Where two layouts genuinely both fit (a cafe with a substantial menu), a stable hash of the place id picks one, so a row of neighbouring cafes doesn't ship a row of identical pages.
 
-Palette works the same way: a colour word in the name wins where there is one (*Azul*, *Verde*, *Nero* — Melbourne is full of them), otherwise category plus the id hash. Each layout also carries its own type pairing, so the three don't just differ in colour — they differ in voice.
+Palette works the same way: a colour word in the name wins where there is one (*Azul*, *Verde*, *Nero* — Melbourne is full of them), otherwise category plus the id hash. `--palette azure|terracotta|forest|plum|charcoal|harbour|chilli` overrides it — `chilli` exists for the kitchens whose food is actually that colour, where the usual cool accent on a warm ground looks wrong. Each layout also carries its own type pairing, so the three don't just differ in colour — they differ in voice.
 
 Override with `--layout poster|billoffare|card` when you disagree.
 

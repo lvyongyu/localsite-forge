@@ -4,7 +4,7 @@ import path from 'node:path';
 import { searchText, placeDetails, cacheStatus } from '../src/places.js';
 import { filterAndRank, toCsv, classifyWeb } from '../src/scan.js';
 import { buildProfile, contentTodo } from '../src/profile.js';
-import { pickTheme } from '../src/theme.js';
+import { pickTheme, paletteByName } from '../src/theme.js';
 import { renderSite, pickLayout } from '../src/template.js';
 import { buildPitch } from '../src/pitch.js';
 import { slug, dirFor } from '../src/render-utils.js';
@@ -57,6 +57,8 @@ localsite-forge — find local businesses with no website, then build them one.
       --no-dishes         omit the mined menu section entirely
       --price <n>         headline price in the generated pitch (default 1000)
       --layout <name>     override: poster | billoffare | card | storefront
+      --palette <name>    override: azure | terracotta | forest | plum |
+                          charcoal | harbour
       --lang <en|zh>      language the page opens in — storefront ships both
                           and carries a switch — and the language the pitch
                           notes are written in (default en)
@@ -213,7 +215,9 @@ async function emit(place, outDir) {
   const profile = buildProfile(place, {
     noReviews: has('no-reviews'), noDishes: has('no-dishes'), photos,
   });
-  const theme = pickTheme({ name: profile.name, types: profile.types, id: profile.id });
+  const theme = flag('palette')
+    ? paletteByName(flag('palette'))
+    : pickTheme({ name: profile.name, types: profile.types, id: profile.id });
   const forced = flag('layout');
   const lay = forced ? { name: forced, reason: 'forced with --layout' } : pickLayout(profile);
   const html = renderSite(profile, theme, {
