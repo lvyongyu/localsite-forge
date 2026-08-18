@@ -39,7 +39,8 @@ localsite-forge — find local businesses with no website, then build them one.
       --out <path>        default leads/<slug>.json  (also writes .csv)
 
   forge merge  [--top <n>]          combine every scan in leads/ into merged.json
-  forge roster [--suburb <name>]    build the door-knock page over everything in output/
+  forge roster [--suburb <name>] [--flat]
+                                    build the door-knock page over output/
 
   forge build  <placeId>            build one site from a live lookup
   forge build  --fixture <file>     build from a saved JSON payload (no API key needed)
@@ -97,10 +98,13 @@ function doRoster() {
   const from = flag('from', path.join(ROOT, 'leads', 'merged.json'));
   const outDir = flag('out', path.join(ROOT, 'output'));
   const leads = JSON.parse(fs.readFileSync(from, 'utf8')).slice(0, Number(flag('top', 30)));
-  const built = leads.filter(l => fs.existsSync(path.join(outDir, dirFor({ name: l.name, id: l.id }))));
+  const built = leads.filter(l => {
+    const b = dirFor({ name: l.name, id: l.id });
+    return fs.existsSync(path.join(outDir, has('flat') ? b + '.html' : b));
+  });
   const file = path.join(outDir, 'roster.html');
   fs.writeFileSync(file, renderRoster(built, {
-    suburb: flag('suburb', ''), price: Number(flag('price', 1000)),
+    suburb: flag('suburb', ''), price: Number(flag('price', 1000)), flat: has('flat'),
   }));
   console.log(`\nRoster: ${built.length} of ${leads.length} leads have a built site`);
   if (built.length < leads.length)

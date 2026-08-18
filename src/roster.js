@@ -11,22 +11,25 @@ const WEB_LABEL = {
   platform: 'platform only',
 };
 
-export function renderRoster(leads, { suburb = '', price = 1000 } = {}) {
+export function renderRoster(leads, { suburb = '', price = 1000, flat = false } = {}) {
   const rows = leads.map((l, i) => {
-    const dir = dirFor({ name: l.name, id: l.id });
+    const base = dirFor({ name: l.name, id: l.id });
+    // flat: one self-contained <shop>.html you can send straight to an owner.
+    const dir = flat ? `${base}.html` : `${base}/index.html`;
+    const pitch = flat ? `pitch/${base}.md` : `${base}/pitch.md`;
     const tel = (l.phone || '').replace(/[^\d+]/g, '');
     return `<tr data-id="${esc(l.id)}">
       <td class="n">${i + 1}</td>
       <td class="s">${l.score}</td>
       <td class="nm">
-        <a href="${esc(dir)}/index.html">${esc(l.name)}</a>
+        <a href="${esc(dir)}">${esc(l.name)}</a>
         <span class="cat">${esc(l.category || '')}</span>
       </td>
       <td class="rt"><b>${l.rating}</b><span>${l.reviews}</span></td>
       <td><span class="tag t-${esc(l.web)}">${esc(WEB_LABEL[l.web] || l.web)}</span></td>
       <td class="ph">${tel ? `<a href="tel:${esc(tel)}">${esc(l.phone)}</a>` : '<i>none</i>'}</td>
       <td class="ad">${esc(l.address.replace(/, Australia$/, ''))}</td>
-      <td class="dc"><a href="${esc(dir)}/pitch.md">pitch</a></td>
+      <td class="dc"><a href="${esc(pitch)}">pitch</a></td>
       <td class="st"><button type="button" data-state="0">to do</button></td>
     </tr>`;
   }).join('');
