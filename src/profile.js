@@ -231,6 +231,10 @@ export function buildProfile(place, opts = {}) {
     categoryZh: place._zh?.category ?? '',
     notes: place._zh?.notes ?? [],
     demoPhone: place._demo?.phone === true,
+    // Awards, read off the shop's own signage. Not an API field and never
+    // invented: if it is not on their wall it does not go on their page.
+    awards: (place._awards ?? []).map(a => ({ zh: a.zh ?? '', en: a.en ?? a.zh ?? '' })),
+    heroFile: place._hero ?? '',
     types: place.types ?? [],
     priceLevel: place.priceLevel ?? '',
     hours,
@@ -241,8 +245,9 @@ export function buildProfile(place, opts = {}) {
     dishes: opts.noDishes ? []
       : Array.isArray(place._menu) && place._menu.length
         ? place._menu.slice(0, 12).map(d => typeof d === 'string'
-            ? { title: d, titleEn: '', unverified: true, supplied: true }
-            : { title: d.zh ?? d.en ?? '', titleEn: d.en ?? '', unverified: true, supplied: true })
+            ? { title: d, titleEn: '', photo: '', unverified: true, supplied: true }
+            : { title: d.zh ?? d.en ?? '', titleEn: d.en ?? '', photo: d.photo ?? '',
+                unverified: true, supplied: true })
         : mineOfferings(place.reviews),
     // Drives the section heading: a barber does not have "a menu".
     isFood: (place.types ?? []).some(t =>

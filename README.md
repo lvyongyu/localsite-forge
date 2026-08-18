@@ -135,6 +135,8 @@ Two more fixture escape hatches, for a shop the API has never heard of: `_menu` 
 
 A fixture may also carry a `_zh` block: `category` for the kicker line, and `notes` — the hooks you saw standing at the door that no API returns (the awards on the wall, which neighbour on the strip already has a site). Notes reach the **pitch notes only**, never the page.
 
+Where the listing gives it something to work with, the page fills out rather than thins down: the photo that no dish claims leads the page as a full-bleed band, a `_menu` entry naming its own `photo` turns the menu into a grid of dish cards instead of a text list, and `_awards` — read off the plaques on the shopfront, never invented — becomes a trust band under the hero. On a phone the call button follows you down the page in a docked bar. Motion is limited to a fade-up as sections arrive and a slow zoom on a hovered photo, added by script so a page whose JavaScript never runs shows everything rather than nothing, and skipped entirely under `prefers-reduced-motion`.
+
 ### `--draft`: the blanks are the agenda
 
 A shop that opened last month has no rating, no reviews and often no hours on its listing. Built normally, those sections simply don't exist — correct, but it leaves you holding a short page in front of an owner. `--draft` renders them instead as **marked blanks** in the shape of the real thing: a menu with dotted leaders and no dish names, the seven weekdays with nothing beside them, three photo frames labelled *shopfront / the room / two dishes*. Nothing is invented — the page says plainly what is missing, and the blanks become the list of things you fill in together at one of their tables.

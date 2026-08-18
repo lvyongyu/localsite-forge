@@ -1,5 +1,5 @@
 {
-  "_note": "Prospect, not a sample. Verified: trading name, street address, Hunan cuisine (the plaques on the shopfront). The menu was read off the shop's own dish photographs and the opening hours below are an EXAMPLE pattern — neither is confirmed by the owner, and neither is published anywhere. Build with --draft so both carry their warning, and replace them the moment the owner says the real ones. The phone number is a RESERVED FICTITIOUS number (Australia's 5550 range) so a demo can show a call button without ringing a stranger; replace it with the real one. forge site \"15 Village Ave, Doncaster VIC 3108\" once an API key is available.",
+  "_note": "Prospect, not a sample. Verified: trading name, street address, Hunan cuisine (the plaques on the shopfront). The menu was read off the shop's own dish photographs and the opening hours below are an EXAMPLE pattern — neither is confirmed by the owner, and neither is published anywhere. Build with --draft so both carry their warning, and replace them the moment the owner says the real ones. The phone number is a RESERVED FICTITIOUS number (Australia's 5550 range) so a demo can show a call button without ringing a stranger; replace it with the real one. forge site \"15 Village Ave, Doncaster VIC 3108\" once an API key is available. _awards are read off the plaques in the shopfront photograph and _menu photos map dish names to the files in the photos directory; both are read-off-a-picture guesses until the owner confirms them.",
   "id": "THE_MU_DONCASTER",
   "displayName": {
     "text": "慕芙蓉小馆 The Mu",
@@ -29,27 +29,33 @@
   "_menu": [
     {
       "zh": "小炒黄牛肉",
-      "en": "Stir-fried beef with chilli"
+      "en": "Stir-fried beef with chilli",
+      "photo": "6.jpg"
     },
     {
       "zh": "香辣炒蟹",
-      "en": "Chilli crab"
+      "en": "Chilli crab",
+      "photo": "2.jpg"
     },
     {
       "zh": "擂椒炒排骨",
-      "en": "Pork ribs with blistered green chilli"
+      "en": "Pork ribs with blistered green chilli",
+      "photo": "4.jpg"
     },
     {
       "zh": "干锅排骨",
-      "en": "Dry-pot pork ribs"
+      "en": "Dry-pot pork ribs",
+      "photo": "5.jpg"
     },
     {
       "zh": "玉米排骨煲",
-      "en": "Pork ribs and sweetcorn pot"
+      "en": "Pork ribs and sweetcorn pot",
+      "photo": "3.jpg"
     },
     {
       "zh": "擂皮蛋配法棍",
-      "en": "Century egg with baguette"
+      "en": "Century egg with baguette",
+      "photo": "7.jpg"
     }
   ],
   "dineIn": true,
@@ -229,5 +235,16 @@
   "internationalPhoneNumber": "+61 3 5550 1234",
   "_demo": {
     "phone": true
-  }
+  },
+  "_hero": "1.jpg",
+  "_awards": [
+    {
+      "zh": "走进联合国的湘菜代表",
+      "en": "Hunan cuisine taken to the United Nations"
+    },
+    {
+      "zh": "全国湘菜名店 50 强",
+      "en": "Top 50 Hunan restaurants, nationally"
+    }
+  ]
 }

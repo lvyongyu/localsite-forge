@@ -23,15 +23,27 @@ export function render(p, t, opts = {}) {
   const tel = telHref(p);
   const open = p.hours.some(h => h.open != null);
   const hasMenu = p.dishes.length > 0;
-  const hasPhotos = p.photos.length > 0;
+  const hasPhotos = p.photos.length > 0;   // recomputed below once the hero is picked
   const hasQuotes = p.quotes.length > 0;
   const supplied = p.dishes.some(d => d.supplied);
   const menuKicker = p.isFood ? 'menuKicker' : 'svcKicker';
   const menuTitle = p.isFood ? 'menuTitle' : 'svcTitle';
 
+  // A dish may name its own photograph. What is left over — usually the
+  // shopfront — leads the page, because the first thing a page has to do is
+  // tell someone walking past that this is the door.
+  const byFile = new Map(p.photos.filter(x => x.file).map(x => [x.file, x]));
+  const dishShots = new Set(p.dishes.map(d => d.photo).filter(Boolean));
+  const heroShot = byFile.get(p.heroFile)
+    ?? p.photos.find(x => !dishShots.has(x.file))
+    ?? null;
+  const spare = p.photos.filter(x => x !== heroShot && !dishShots.has(x.file));
+  const carded = p.dishes.filter(d => d.photo && byFile.has(d.photo)).length >= 3;
+
+  const gallery = spare.length ? spare : [];
   const nav = [];
   if (hasMenu || draft) nav.push(['menu', p.isFood ? 'navMenu' : 'navServices']);
-  if (hasPhotos || draft) nav.push(['gallery', 'navGallery']);
+  if (gallery.length || (draft && !hasPhotos)) nav.push(['gallery', 'navGallery']);
   if (hasQuotes) nav.push(['reviews', 'navReviews']);
   if (open || draft) nav.push(['hours', 'navHours']);
   nav.push(['find', 'navFind']);
@@ -62,7 +74,19 @@ export function render(p, t, opts = {}) {
       <span class="ct">${d.supplied ? bi('tbc') : p.isFood ? `${d.mentions}&times;` : bi('enquire')}</span>
     </div>`).join('');
 
-  const plates = p.photos.map((ph, i) => `<figure class="plate">
+  const cards = p.dishes.map(d => {
+    const ph = byFile.get(d.photo);
+    return `<figure class="card reveal">
+      ${ph ? `<span class="shot"><img src="${esc(ph.src)}" alt="${esc(d.title)}" decoding="async"${
+        ph.src.startsWith('data:') ? '' : ' loading="lazy"'}></span>` : '<span class="shot empty"></span>'}
+      <figcaption>
+        <span class="nm">${d.titleEn ? biText(esc(d.titleEn), esc(d.title)) : esc(d.title)}</span>
+        ${d.titleEn ? biText(esc(d.title), esc(d.titleEn), { tag: 'i', cls: 'en' }) : ''}
+        <span class="ct">${d.supplied ? bi('tbc') : p.isFood ? `${d.mentions}&times;` : bi('enquire')}</span>
+      </figcaption></figure>`;
+  }).join('');
+
+  const plates = gallery.map((ph, i) => `<figure class="plate reveal">
       <img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 1}" decoding="async"${
         ph.src.startsWith('data:') ? '' : ' loading="lazy"'}>
       ${ph.author ? `<figcaption>${esc(ph.author)}</figcaption>` : ''}</figure>`).join('');
@@ -191,6 +215,34 @@ h1 em{font-style:normal;color:var(--cool)}
   border-radius:50%;background:var(--hot)}
 @media(max-width:640px){.hrow .tm{display:none}.axis{margin-right:0}}
 
+/* full-bleed band: the shopfront, so the page says "this is the door" */
+.band{margin:0 0 clamp(28px,4vw,48px);background:var(--sand);overflow:hidden}
+.band img{display:block;width:100%;height:clamp(230px,38vw,480px);object-fit:cover;object-position:center 62%}
+
+/* what is on the wall at the door — their own signage, not our claim */
+.awardband{background:var(--sand);padding:clamp(22px,3vw,32px) clamp(20px,3vw,36px);
+  margin-bottom:clamp(28px,4vw,48px)}
+.awards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(18px,2.6vw,34px)}
+.award{display:flex;gap:14px;align-items:center;color:var(--hot)}
+.award svg{flex:none}
+.award span{font-size:clamp(1rem,1.6vw,1.22rem);line-height:1.35;color:var(--ink);
+  letter-spacing:-.01em;font-weight:600;text-wrap:balance}
+.awardnote{margin-top:16px;color:var(--dim)}
+
+/* dish cards: a menu you can see */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:clamp(12px,1.6vw,20px)}
+.card{margin:0;background:var(--paper);border:1px solid var(--hair)}
+.card .shot{display:block;aspect-ratio:4/3;overflow:hidden;background:var(--sand)}
+.card .shot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
+.card:hover .shot img{transform:scale(1.045)}
+.card figcaption{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:14px 16px 16px}
+.card .nm{font-size:1.08rem;flex:1 1 auto}
+.card .en{display:block;width:100%;font-style:normal;font-family:var(--label);font-size:.58rem;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:-2px}
+html[data-lang="en"] .card .en [data-l="en"],
+html[data-lang="zh"] .card .en [data-l="zh"]{display:block}
+.card .ct{font-family:var(--label);font-size:.6rem;letter-spacing:.12em;color:var(--dim);white-space:nowrap}
+
 /* sections */
 .sec{padding:clamp(38px,5vw,64px) 0;border-top:1px solid var(--line)}
 .rowhead{display:flex;justify-content:space-between;align-items:baseline;gap:24px;
@@ -212,7 +264,8 @@ html[data-lang="zh"] .dish .en [data-l="zh"]{display:block}
   white-space:nowrap}
 .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
 .plate{position:relative;aspect-ratio:4/3;background:var(--sand);overflow:hidden;margin:0}
-.plate img{width:100%;height:100%;object-fit:cover;display:block}
+.plate img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
+.plate:hover img{transform:scale(1.04)}
 .plate figcaption{position:absolute;left:0;right:0;bottom:0;font-family:var(--label);font-size:.53rem;
   letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:16px 8px 6px;
   background:linear-gradient(transparent,rgba(0,0,0,.72));opacity:0;transition:opacity .18s}
@@ -239,6 +292,22 @@ footer{border-top:1px solid var(--line);padding:36px 0 44px;display:flex;justify
   gap:16px;flex-wrap:wrap;font-family:var(--label);font-size:.6rem;letter-spacing:.18em;
   text-transform:uppercase;color:var(--dim)}
 
+/* the thumb bar: on a phone the one action stays in reach the whole way down */
+.dock{display:none}
+@media(max-width:760px){
+  body{padding-bottom:74px}
+  .dock{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:10;gap:9px;padding:10px 14px;
+    background:var(--bar);border-top:1px solid var(--line);backdrop-filter:blur(8px)}
+  .dock a{flex:1;text-align:center;padding:15px 10px;font-family:var(--label);font-size:.66rem;
+    letter-spacing:.16em;text-transform:uppercase}
+  .dock .go{background:var(--hot);color:#fff}
+  .dock .alt{border:1px solid var(--ink)}
+}
+
+/* motion, added by script so a page with no JS is never left blank */
+html.motion .reveal{opacity:0;transform:translateY(12px)}
+html.motion .reveal[data-in]{opacity:1;transform:none;transition:opacity .5s ease,transform .5s ease}
+
 /* draft blanks: loud on purpose — they are the agenda for the meeting */
 .tbd{font-family:var(--label);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--hot);border:1px dashed var(--hot);padding:6px 12px;display:inline-block}
@@ -251,7 +320,9 @@ footer{border-top:1px solid var(--line);padding:36px 0 44px;display:flex;justify
   .bar{position:static;border-bottom:1px solid var(--line)}
   #lang{display:none}
   .btn{background:transparent!important;color:var(--ink)!important;border-color:var(--dim)!important}
-  .sec,.plate,.quotes figure{break-inside:avoid}
+  .sec,.plate,.card,.quotes figure,.awards{break-inside:avoid}
+  .dock{display:none}
+  .reveal{opacity:1!important;transform:none!important}
   .hero{padding-top:14px}
   footer{border-top:1px solid var(--line)}
 }
@@ -318,11 +389,31 @@ footer{border-top:1px solid var(--line);padding:36px 0 44px;display:flex;justify
     ${chips ? `<div class="chips">${chips}</div>` : ''}
   </div>
 
+  ${heroShot ? `<div class="band">
+    <img src="${esc(heroShot.src)}" alt="${esc(p.name)}" decoding="async">
+  </div>` : ''}
+
+  ${p.awards.length ? `<div class="awardband reveal">
+    ${bi('awardsKick', { tag: 'div', cls: 'kick' })}
+    <div class="awards">
+    ${p.awards.map(a => `<div class="award">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="30" height="30">
+        <circle cx="12" cy="9.5" r="6.2" fill="none" stroke="currentColor" stroke-width="1.3"></circle>
+        <circle cx="12" cy="9.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1"></circle>
+        <path d="M8.6 14.6 7 22l5-2.4L17 22l-1.6-7.4" fill="none" stroke="currentColor"
+          stroke-width="1.3" stroke-linejoin="round"></path>
+      </svg>
+      <span>${biText(esc(a.en), esc(a.zh))}</span>
+    </div>`).join('')}
+    </div>
+    ${bi('awardNote', { tag: 'p', cls: 'note blk awardnote' })}
+  </div>` : ''}
+
   ${hasMenu ? `<section class="sec" id="menu">
     ${head2(menuKicker, menuTitle,
       supplied ? biText(`${p.dishes.length} dishes &middot; to confirm`, `${p.dishes.length} 道 &middot; 待确认`)
         : p.reviews ? biText(`from ${p.reviews} reviews`, `取自 ${p.reviews} 条评价`) : '')}
-    <div class="menu">${dishRows}</div>
+    ${carded ? `<div class="cards">${cards}</div>` : `<div class="menu">${dishRows}</div>`}
     ${bi(supplied ? 'suppliedMenu' : 'minedNote', { tag: 'p', cls: 'note blk' })}
   </section>` : draft ? `<section class="sec" id="menu">
     ${head2(menuKicker, menuTitle)}
@@ -334,11 +425,11 @@ footer{border-top:1px solid var(--line);padding:36px 0 44px;display:flex;justify
              { tag: 'p', cls: 'note blk' })}
   </section>` : ''}
 
-  ${hasPhotos ? `<section class="sec" id="gallery">
-    ${head2('roomKicker', 'roomTitle', biText(`${p.photos.length} photos`, `${p.photos.length} 张`))}
+  ${gallery.length ? `<section class="sec" id="gallery">
+    ${head2('roomKicker', 'roomTitle', biText(`${gallery.length} photos`, `${gallery.length} 张`))}
     <div class="grid3">${plates}</div>
     ${bi(p.photos.some(x => x.local) ? 'photoNoteOwn' : 'photoNote', { tag: 'p', cls: 'note blk' })}
-  </section>` : draft ? `<section class="sec" id="gallery">
+  </section>` : (draft && !hasPhotos) ? `<section class="sec" id="gallery">
     ${head2('roomKicker', 'roomTitle')}
     <div class="grid3">
       <div class="blank">${tbd('Shopfront', '门头')}</div>
@@ -382,6 +473,11 @@ footer{border-top:1px solid var(--line);padding:36px 0 44px;display:flex;justify
   </footer>
 </div>
 
+<nav class="dock">
+  ${tel ? `<a class="go" href="${tel}">${bi('callShop')}</a>` : ''}
+  <a class="alt" href="${mapsHref(p)}">${bi('directions')}</a>
+</nav>
+
 ${langScript(lang)}
 ${open ? statusScript(p) : ''}
 ${open ? `<script>
@@ -407,6 +503,17 @@ ${open ? `<script>
       else bar.setAttribute('data-stuck','');
     });
   },{rootMargin:'-72px 0px 0px 0px'}).observe(top);
+
+  // Reveal on scroll, but only where motion is welcome — and the class that
+  // hides things is added here, so a page whose script never runs shows
+  // everything rather than nothing.
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    document.documentElement.classList.add('motion');
+    var rev=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){e.target.setAttribute('data-in','');rev.unobserve(e.target);} });
+    },{rootMargin:'0px 0px -8% 0px'});
+    [].forEach.call(document.querySelectorAll('.reveal'),function(el){rev.observe(el);});
+  }
 
   var links={};
   [].forEach.call(document.querySelectorAll('.navlink'),function(a){links[a.getAttribute('data-nav')]=a;});

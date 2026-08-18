@@ -81,7 +81,7 @@ export async function fetchPhotos(chosen, dir, { maxWidthPx = 1200 } = {}) {
     const byFile = new Map(chosen.map((c, i) => [`${i + 1}.jpg`, c]));
     return have.map(f => ({
       ...(byFile.get(f) ?? { author: 'Google user', authorUri: '' }),
-      src: `photos/${f}`,
+      src: `photos/${f}`, file: f,
     }));
   }
 
@@ -94,7 +94,7 @@ export async function fetchPhotos(chosen, dir, { maxWidthPx = 1200 } = {}) {
     const abs = path.join(outDir, file);
     try {
       if (!fs.existsSync(abs)) fs.writeFileSync(abs, await photoBytes(c.name, { maxWidthPx }));
-      got.push({ ...c, src: `photos/${file}`, abs });
+      got.push({ ...c, src: `photos/${file}`, file, abs });
     } catch (e) {
       console.log(`     photo ${i + 1} skipped: ${e.message}`);
     }
@@ -162,6 +162,6 @@ export function localPhotos(fromDir, outDir, { limit = 3, credit = '' } = {}) {
   return files.map((f, i) => {
     const dest = `${i + 1}${path.extname(f).toLowerCase()}`;
     fs.copyFileSync(path.join(fromDir, f), path.join(photoDir, dest));
-    return { src: `photos/${dest}`, author: credit, authorUri: '', local: true, from: f };
+    return { src: `photos/${dest}`, file: dest, author: credit, authorUri: '', local: true, from: f };
   });
 }

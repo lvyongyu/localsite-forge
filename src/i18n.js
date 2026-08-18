@@ -71,6 +71,10 @@ export const T = {
   suppliedMenu:['Read off the shop’s own photographs, not supplied by the kitchen — confirm every line with the owner. No prices are shown anywhere on this page.',
                 '以下菜名是照着店里自己的菜品照片认的，不是厨房给的清单，请逐道与店家确认。本页不显示任何价格。'],
   demoFooter:  ['Private demo — not indexed', '内部演示页 — 未被搜索引擎收录'],
+  awardsKick:  ['On the wall at the door', '门口墙上'],
+  awardNote:   ['Read off the plaques on the shopfront — confirm the wording with the owner.',
+                '以上取自门口的牌匾，具体措辞请与店家确认。'],
+  dishesKick:  ['The dishes', '菜品'],
 };
 
 // The attribute labels the API hands back are English. A page opened in
