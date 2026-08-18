@@ -1,10 +1,27 @@
 {
-  "_note": "Prospect, not a sample. Shaped like a Places API (New) Place Details response but carrying ONLY what has been verified: the trading name and the street address. No rating, hours, phone, photos or reviews are present because none have been confirmed for this shop — build it with --draft so those come out as blanks to fill in with the owner, and re-fetch from the API (forge site \"15 Village Ave, Doncaster VIC 3108\") once a key is available.",
+  "_note": "Prospect, not a sample. Carries only what has been verified: trading name, street address, and the cuisine visible on the shopfront (the plaques read HUI JIAXIANG / 湘菜). No rating, hours, phone or reviews are present because none have been confirmed — build with --draft so those come out as blanks to fill in with the owner, and re-fetch from the API (forge site \"15 Village Ave, Doncaster VIC 3108\") once a key is available.",
   "id": "THE_MU_DONCASTER",
-  "displayName": { "text": "慕芙蓉小馆 The Mu", "languageCode": "zh" },
+  "displayName": {
+    "text": "慕芙蓉小馆 The Mu",
+    "languageCode": "zh"
+  },
   "formattedAddress": "15 Village Ave, Doncaster VIC 3108, Australia",
   "shortFormattedAddress": "15 Village Ave, Doncaster",
-  "primaryTypeDisplayName": { "text": "Restaurant" },
-  "types": ["restaurant", "food", "point_of_interest"],
-  "businessStatus": "OPERATIONAL"
+  "primaryTypeDisplayName": {
+    "text": "Hunan restaurant"
+  },
+  "types": [
+    "restaurant",
+    "food",
+    "point_of_interest"
+  ],
+  "businessStatus": "OPERATIONAL",
+  "_zh": {
+    "category": "湘菜小馆",
+    "notes": [
+      "**门口墙上三块牌子**：HUI JIAXIANG「走进联合国的湘菜代表」、「全国湘菜名店 50 强」、「20 年」。这是现成的信任状，网站首屏就该放着 —— 现在在 Google 上一个字都看不到，只有走到门口才知道。",
+      "**同一排的邻居已经有网站了**：27 号 Vegie Mum 有自己的域名，还能在线点餐。客人在手机上比较的时候，有页面的和没页面的差别很直接。",
+      "**湘菜在 Doncaster 这一带不多**，但搜「Hunan restaurant Doncaster」「湘菜 Doncaster」的人现在找不到你们 —— 这个词几乎没人跟你们抢。"
+    ]
+  }
 }

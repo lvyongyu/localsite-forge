@@ -127,6 +127,10 @@ node bin/forge.js site "15 Village Ave, Doncaster VIC 3108" --layout storefront 
 
 The split is deliberate: only the scaffolding is translated — navigation, section headings, buttons, weekdays, the open/closed line. **The shop's own words are never touched**: its trading name, the dishes mined from its reviews, and what customers wrote all stay exactly as written. Translating a business's own name is how you produce a page it doesn't recognise as its own.
 
+Pitch notes follow the same flag: `--lang zh` writes `pitch.md` in Chinese, and it is not a translation of the English one — the objections that actually come up across a counter in Box Hill ("我们有小红书就够了", "我亲戚会做网站", "我英文不好，看不懂后台") are different objections, and they get their own answers.
+
+A fixture may also carry a `_zh` block: `category` for the kicker line, and `notes` — the hooks you saw standing at the door that no API returns (the awards on the wall, which neighbour on the strip already has a site). Notes reach the **pitch notes only**, never the page.
+
 ### `--draft`: the blanks are the agenda
 
 A shop that opened last month has no rating, no reviews and often no hours on its listing. Built normally, those sections simply don't exist — correct, but it leaves you holding a short page in front of an owner. `--draft` renders them instead as **marked blanks** in the shape of the real thing: a menu with dotted leaders and no dish names, the seven weekdays with nothing beside them, three photo frames labelled *shopfront / the room / two dishes*. Nothing is invented — the page says plainly what is missing, and the blanks become the list of things you fill in together at one of their tables.

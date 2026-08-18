@@ -57,8 +57,9 @@ localsite-forge — find local businesses with no website, then build them one.
       --no-dishes         omit the mined menu section entirely
       --price <n>         headline price in the generated pitch (default 1000)
       --layout <name>     override: poster | billoffare | card | storefront
-      --lang <en|zh>      language the page opens in; storefront ships both
-                          and carries a switch (default en)
+      --lang <en|zh>      language the page opens in — storefront ships both
+                          and carries a switch — and the language the pitch
+                          notes are written in (default en)
       --draft             mark the facts the listing does not carry as blanks
                           to fill in with the owner, instead of omitting them
       --refresh           bypass the details cache and re-fetch from the API
@@ -224,7 +225,9 @@ async function emit(place, outDir) {
   fs.mkdirSync(path.dirname(out.html), { recursive: true });
   fs.mkdirSync(path.dirname(out.pitch), { recursive: true });
   fs.writeFileSync(out.html, html);
-  fs.writeFileSync(out.pitch, buildPitch(profile, { price: Number(flag('price', 1000)) }));
+  fs.writeFileSync(out.pitch, buildPitch(profile, {
+    price: Number(flag('price', 1000)), lang: flag('lang', 'en'),
+  }));
 
   const todo = contentTodo(profile);
   fs.writeFileSync(out.todo,

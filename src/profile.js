@@ -207,6 +207,10 @@ export function buildProfile(place, opts = {}) {
     rating: place.rating ?? null,
     reviews: place.userRatingCount ?? 0,
     category: place.primaryTypeDisplayName?.text ?? 'Local business',
+    // Fixtures may carry a translated category and hand-noted hooks under _zh;
+    // the API returns neither. Hooks reach the pitch notes only — never the page.
+    categoryZh: place._zh?.category ?? '',
+    notes: place._zh?.notes ?? [],
     types: place.types ?? [],
     priceLevel: place.priceLevel ?? '',
     hours,

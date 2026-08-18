@@ -25,7 +25,7 @@ export function render(p, t, opts = {}) {
   const tel = telHref(p);
   const open = p.hours.some(h => h.open != null);
   const hasMenu = p.dishes.length > 0;
-  const hasPhotos = p.photos.length > 0;
+  const hasPhotos = p.photos.length > 1;   // one photo is a hero, not a gallery
   const hasQuotes = p.quotes.length > 0;
   const menuKey = p.isFood ? 'navMenu' : 'navServices';
 
@@ -52,8 +52,12 @@ export function render(p, t, opts = {}) {
       <span class="nm">${esc(d.title)}</span><span class="led"></span>
       <span class="ct">${p.isFood ? `${d.mentions}&times;` : bi('enquire')}</span></li>`).join('');
 
-  const plates = p.photos.map((ph, i) => `<figure>
-      <img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 1}" loading="lazy" decoding="async">
+  // The first photo is the shopfront if there is one: at the top of the page
+  // it does the job the name alone cannot — telling someone walking down the
+  // street that this is the door they are looking for.
+  const heroShot = p.photos[0];
+  const plates = p.photos.slice(1).map((ph, i) => `<figure>
+      <img src="${esc(ph.src)}" alt="${esc(p.name)} ${i + 2}" loading="lazy" decoding="async">
       ${ph.author ? `<figcaption>${esc(ph.author)}</figcaption>` : ''}</figure>`).join('');
 
   const quotes = p.quotes.map(q => `<figure>
@@ -150,6 +154,9 @@ h1 em{font-style:normal;color:var(--cool)}
 .chip{font-family:var(--label);font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;
   color:var(--dim);border:1px solid var(--line);padding:7px 13px}
 
+.shot{margin-bottom:clamp(30px,5vw,54px);background:var(--sand);overflow:hidden}
+.shot img{display:block;width:100%;height:clamp(240px,42vw,520px);object-fit:cover;object-position:center 62%}
+
 /* sections */
 section{padding:clamp(38px,6vw,64px) 0;border-top:1px solid var(--line)}
 .shead{display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin-bottom:28px;flex-wrap:wrap}
@@ -198,6 +205,17 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
   justify-content:center;padding:18px;background:var(--hair)}
 .blanks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 .blanks .blank{aspect-ratio:16/9;min-height:110px}
+/* On paper: no sticky anything, no switch, and sections that do not split
+   across a page break. A printed page is what an owner keeps on the counter. */
+@media print{
+  .bar{position:static;border-bottom:1px solid var(--line)}
+  #lang{display:none}
+  .btn{background:transparent!important;color:var(--ink)!important;border-color:var(--dim)!important}
+  section,.shot,.quotes figure{break-inside:avoid}
+  .hero{padding-top:14px}
+  .shot img{height:300px}
+  footer{border-top:1px solid var(--line)}
+}
 @media(max-width:760px){
   .bin{flex-wrap:wrap;gap:0;padding-bottom:8px}
   .brand{padding:12px 0 8px}
@@ -224,7 +242,11 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
 
 <div class="wrap" id="top">
   <div class="hero">
-    <div class="kick">${esc(p.category)}${p.suburb ? ' &middot; ' + esc(p.suburb) : ''}</div>
+    ${p.categoryZh
+      ? biText(esc(p.category) + (p.suburb ? ' &middot; ' + esc(p.suburb) : ''),
+               esc(p.categoryZh) + (p.suburb ? ' &middot; ' + esc(p.suburb) : ''),
+               { tag: 'div', cls: 'kick' })
+      : `<div class="kick">${esc(p.category)}${p.suburb ? ' &middot; ' + esc(p.suburb) : ''}</div>`}
     <h1>${esc(p.name)}</h1>
 
     <div class="facts">
@@ -247,6 +269,10 @@ footer{border-top:1px solid var(--line);padding:30px 0 40px;display:flex;justify
 
     ${chips ? `<div class="chips">${chips}</div>` : ''}
   </div>
+
+  ${heroShot ? `<div class="shot">
+    <img src="${esc(heroShot.src)}" alt="${esc(p.name)}" decoding="async">
+  </div>` : ''}
 
   ${hasMenu ? section('menu', p.isFood ? 'menuKicker' : 'svcKicker', p.isFood ? 'menuTitle' : 'svcTitle',
       `<ul>${menuRows}</ul>${bi('minedNote', { tag: 'p', cls: 'note blk' })}`,
