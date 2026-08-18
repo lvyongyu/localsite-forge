@@ -111,6 +111,26 @@ Palette works the same way: a colour word in the name wins where there is one (*
 
 Override with `--layout poster|billoffare|card` when you disagree.
 
+### A fourth: `storefront`, the full page
+
+The three above each answer one question and stop. That reads as thin to an owner who has just been shown the site of the shop two doors down — what they see is not restraint, it's *less than the neighbours got*. So `--layout storefront` builds the page that high-street hospitality sites actually have: a bar that sticks to the top with anchors into the page, and a section for each thing the listing knows — menu, gallery, reviews, hours, find us — ending in the address and the phone number.
+
+What it does **not** do is manufacture the rest of that structure. No Functions page we have no packages for, no What's On we have no events for, no booking form we can't honour. **A nav item exists only when its section has real data behind it**, so a thin listing gets a short bar instead of a page full of empty rooms.
+
+```bash
+node bin/forge.js site "15 Village Ave, Doncaster VIC 3108" --layout storefront --lang zh --flat
+```
+
+### Bilingual, without a second page
+
+`--lang zh` opens the page in Chinese; `--lang en` (the default) opens it in English. Either way `storefront` ships **both** languages in the one file with a switch in the bar — the choice is remembered per browser. Half of Box Hill and Doncaster trades in Chinese while the landlord's agent and the council read English; a single file that flips between them is worth more than two files that drift apart.
+
+The split is deliberate: only the scaffolding is translated — navigation, section headings, buttons, weekdays, the open/closed line. **The shop's own words are never touched**: its trading name, the dishes mined from its reviews, and what customers wrote all stay exactly as written. Translating a business's own name is how you produce a page it doesn't recognise as its own.
+
+### `--draft`: the blanks are the agenda
+
+A shop that opened last month has no rating, no reviews and often no hours on its listing. Built normally, those sections simply don't exist — correct, but it leaves you holding a short page in front of an owner. `--draft` renders them instead as **marked blanks** in the shape of the real thing: a menu with dotted leaders and no dish names, the seven weekdays with nothing beside them, three photo frames labelled *shopfront / the room / two dishes*. Nothing is invented — the page says plainly what is missing, and the blanks become the list of things you fill in together at one of their tables.
+
 ### Photos, and who is in them
 
 Listing photos are pulled so an owner sees their own shop in the mock-up rather than a stock cafe. Two rules are enforced in code:
@@ -161,9 +181,10 @@ forge build  --from <leads.json> [--top <n>]
 forge demo
 
 build options, common to every form above:
-  --out <dir>        --layout poster|billoffare|card   --price <n>
-  --flat             --inline-photos                   --photos <n> | --no-photos
-  --no-reviews       --no-dishes                       --refresh    --live
+  --out <dir>        --layout poster|billoffare|card|storefront   --price <n>
+  --lang en|zh       --draft                                      --flat
+  --inline-photos    --photos <n> | --no-photos
+  --no-reviews       --no-dishes    --refresh    --live
 ```
 
 Run `node bin/forge.js` with no arguments for the full option list.
@@ -177,7 +198,8 @@ src/scan.js       website classification + lead scoring
 src/profile.js    API payload -> site model; mines offerings, flags what's unverified
 src/theme.js      palette selection
 src/template.js   layout selection
-src/layouts/      poster.js, billoffare.js, card.js
+src/i18n.js       bilingual chrome — the shop's own words are never translated
+src/layouts/      poster.js, billoffare.js, card.js, storefront.js
 src/render-utils.js  escaping, <head>, live open/closed script, Unicode-safe slugs
 src/photos.js     photo choice, download, people screening, data-URI inlining
 src/roster.js     the door-knock page
@@ -194,7 +216,7 @@ node test/smoke.js
 
 Covers domain classification (including the substring trap where `matrix.com.au` must not read as a Twitter link), escaping of hostile business names and review text in both HTML and embedded JSON-LD, correct weekday alignment of opening hours, graceful degradation when a listing has no phone or no hours, and that neighbouring shops don't generate matching pages.
 
-It also checks that an all-CJK shop name still yields a directory instead of writing into the output root, that people screening fails closed when the detector is absent, and that a `--flat` build produces exactly the files `roster --flat` links to, with nothing loaded from outside the page.
+It also checks that `storefront` ships both languages with a working switch, that a nav item never appears without a section behind it, that `--draft` blanks show up only when asked for, that an all-CJK shop name still yields a directory instead of writing into the output root, that people screening fails closed when the detector is absent, and that a `--flat` build produces exactly the files `roster --flat` links to, with nothing loaded from outside the page.
 
 Three regressions are pinned there deliberately: a cafe that Google also tags `restaurant` but which shuts at 3pm must not be treated as a dinner venue; HTML entities in the attribute line must survive as entities rather than being double-escaped into visible `&middot;` text; and flat output must stay in step with the roster that links it — those two halves shipped apart once, and `roster --flat` reported nothing built. All three shipped once.
 

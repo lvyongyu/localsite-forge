@@ -8,6 +8,10 @@
 //   poster      counter trade — decided on the footpath, needs "open?" fast
 //   billoffare  sit-down venue — decided the night before, needs the menu
 //   card        appointment trade — decided already, needs to book
+//   storefront  the full page: persistent nav, a section per thing the
+//               listing knows, bilingual chrome. Opt in with --layout
+//               storefront — it is the right shape where a shop is being
+//               compared against neighbours who already have a real site.
 //
 // Where two layouts genuinely both fit (a cafe with a substantial menu), a
 // stable hash of the place id picks one, so a row of neighbouring cafes
@@ -16,8 +20,9 @@
 import { render as poster } from './layouts/poster.js';
 import { render as billoffare } from './layouts/billoffare.js';
 import { render as card } from './layouts/card.js';
+import { render as storefront } from './layouts/storefront.js';
 
-const LAYOUTS = { poster, billoffare, card };
+const LAYOUTS = { poster, billoffare, card, storefront };
 
 function hash(s) {
   let h = 2166136261;

@@ -56,7 +56,11 @@ localsite-forge — find local businesses with no website, then build them one.
       --no-reviews        omit Google review quotes (see attribution note in README)
       --no-dishes         omit the mined menu section entirely
       --price <n>         headline price in the generated pitch (default 1000)
-      --layout <name>     override: poster | billoffare | card
+      --layout <name>     override: poster | billoffare | card | storefront
+      --lang <en|zh>      language the page opens in; storefront ships both
+                          and carries a switch (default en)
+      --draft             mark the facts the listing does not carry as blanks
+                          to fill in with the owner, instead of omitting them
       --refresh           bypass the details cache and re-fetch from the API
       --photos <n>        images to pull per business (default 3, billed each)
       --no-photos         skip images entirely
@@ -200,7 +204,10 @@ async function emit(place, outDir) {
   const theme = pickTheme({ name: profile.name, types: profile.types, id: profile.id });
   const forced = flag('layout');
   const lay = forced ? { name: forced, reason: 'forced with --layout' } : pickLayout(profile);
-  const html = renderSite(profile, theme, { live: has('live'), layout: lay.name });
+  const html = renderSite(profile, theme, {
+    live: has('live'), layout: lay.name,
+    lang: flag('lang', 'en'), draft: has('draft'),
+  });
 
   const out = pathsFor(outDir, base, flat);
   fs.mkdirSync(path.dirname(out.html), { recursive: true });
@@ -224,6 +231,8 @@ async function emit(place, outDir) {
   console.log(`  ${profile.name}  ->  ${path.relative(process.cwd(), out.html)}`);
   console.log(`     layout: ${lay.name} — ${lay.reason}`);
   console.log(`     palette: ${theme.name} — ${theme.reason}`);
+  if (lay.name === 'storefront')
+    console.log(`     opens in ${flag('lang', 'en') === 'zh' ? 'Chinese' : 'English'}, switch in the page`);
   if (photos.length)
     console.log(`     ${photos.length} photo(s) kept (people-free)${inline ? ', embedded in the page' : ''}`);
   if (todo.length) console.log(`     ${todo.length} item(s) need a human — see ${path.basename(out.todo)}`);

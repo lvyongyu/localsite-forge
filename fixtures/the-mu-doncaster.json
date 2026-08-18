@@ -1,0 +1,10 @@
+{
+  "_note": "Prospect, not a sample. Shaped like a Places API (New) Place Details response but carrying ONLY what has been verified: the trading name and the street address. No rating, hours, phone, photos or reviews are present because none have been confirmed for this shop — build it with --draft so those come out as blanks to fill in with the owner, and re-fetch from the API (forge site \"15 Village Ave, Doncaster VIC 3108\") once a key is available.",
+  "id": "THE_MU_DONCASTER",
+  "displayName": { "text": "慕芙蓉小馆 The Mu", "languageCode": "zh" },
+  "formattedAddress": "15 Village Ave, Doncaster VIC 3108, Australia",
+  "shortFormattedAddress": "15 Village Ave, Doncaster",
+  "primaryTypeDisplayName": { "text": "Restaurant" },
+  "types": ["restaurant", "food", "point_of_interest"],
+  "businessStatus": "OPERATIONAL"
+}

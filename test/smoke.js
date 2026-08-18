@@ -207,6 +207,60 @@ t('slug never yields a path separator or traversal', () => {
     assert.ok(!slug(n).includes('/') && !slug(n).includes('\\'), n + ' -> ' + slug(n));
 });
 
+console.log('\nstorefront (the full page)');
+const bare = (over = {}) => {
+  const { regularOpeningHours, reviews, ...rest } = azul;
+  return buildProfile({ ...rest, ...over });
+};
+const sf = (p, opts = {}) =>
+  renderSite(p, pickTheme({ name: p.name, types: p.types, id: p.id }), { layout: 'storefront', ...opts });
+
+t('both languages ship in the file, switch is in the page', () => {
+  const html = sf(buildProfile(azul));
+  assert.ok(html.includes('data-l="en"') && html.includes('data-l="zh"'), 'only one language rendered');
+  assert.ok(html.includes('id="lang"'), 'no language switch');
+  assert.ok(html.includes('营业时间') && html.includes('Hours'), 'section headings not bilingual');
+});
+t('--lang picks which one it opens in, English by default', () => {
+  assert.ok(sf(buildProfile(azul)).includes('data-lang="en"'));
+  assert.ok(sf(buildProfile(azul), { lang: 'zh' }).includes('data-lang="zh"'));
+  assert.ok(sf(buildProfile(azul), { lang: 'zh' }).includes('lang="zh-Hans"'), 'html lang not set for CJK');
+});
+t('a nav item only exists when its section has data', () => {
+  const full = sf(buildProfile(azul));
+  for (const id of ['#menu', '#gallery', '#reviews', '#hours', '#find'])
+    assert.ok(full.includes(`href="${id}"`) || id === '#gallery', 'missing nav item ' + id);
+  // Bare listing: no hours, no reviews, no dishes, no photos.
+  const thin = sf(bare({ reviews: [] }));
+  assert.ok(!thin.includes('href="#hours"'), 'hours in the bar with no hours on the listing');
+  assert.ok(!thin.includes('href="#reviews"'), 'reviews in the bar with no reviews');
+  assert.ok(thin.includes('href="#find"'), 'find us should always be there');
+  assert.ok(!thin.includes('id="status"'), 'status line rendered with no hours');
+});
+t('--draft turns missing facts into marked blanks, and only then', () => {
+  const thin = bare({ reviews: [] });
+  assert.ok(!sf(thin).includes('class="tbd"'), 'blanks appeared without --draft');
+  const draft = sf(thin, { lang: 'zh', draft: true });
+  assert.ok(draft.includes('class="tbd"'), 'no blanks in draft mode');
+  assert.ok(draft.includes('待确认') || draft.includes('待填'), 'blanks are not labelled in Chinese');
+  assert.ok(draft.includes('href="#hours"'), 'draft should still offer the hours section to fill in');
+});
+t('hostile name and review text stay escaped in both languages', () => {
+  const html = sf(buildProfile({ ...azul,
+    displayName: { text: '<script>alert(1)</script> 小馆' },
+    reviews: [{ rating: 5, authorAttribution: { displayName: 'A' },
+      text: { text: 'Lovely <img src=x onerror=alert(1)> dumplings and tea here every week' } }] }),
+    { lang: 'zh' });
+  assert.ok(!html.includes('<script>alert(1)'), 'script tag leaked');
+  assert.ok(!html.includes('<img src=x'), 'img tag leaked from review text');
+});
+t('a page with no phone offers directions instead, never a dead tel: link', () => {
+  const { nationalPhoneNumber, internationalPhoneNumber, ...noPhone } = azul;
+  const html = sf(buildProfile(noPhone));
+  assert.ok(!html.includes('href="tel:'), 'tel link without a phone number');
+  assert.ok(html.includes('google.com/maps'), 'no directions fallback');
+});
+
 console.log('\nlayout selection');
 t('appointment trade -> card', () => {
   assert.equal(pickLayout({ isFood:false, types:['hair_salon'], hours:[], attrs:[], dishes:[] }).name, 'card');

@@ -6,6 +6,10 @@ const money = n => `A$${n.toLocaleString('en-AU')}`;
 export function buildPitch(p, { price = 1000, renewal = 390, trialDays = 30 } = {}) {
   const hooks = [];
 
+  if (!p.rating) {
+    hooks.push(`**New shop, no ratings yet.** Nothing to lose and everything to set up: the site, the Google listing link, and the first reviews all start from zero this month.`);
+  }
+
   if (p.reviews >= 50 && p.rating >= 4.3) {
     hooks.push(`**${p.reviews} reviews at ${p.rating}★** — the reputation is already earned. It just has nowhere to land.`);
   }
@@ -29,6 +33,13 @@ export function buildPitch(p, { price = 1000, renewal = 390, trialDays = 30 } = 
     ? `Phone on the listing: **${p.phone}**. Call, or better, walk in.`
     : `**No phone on the listing** — you can't call ahead. Walk in with the site open on your phone.`;
 
+  // A brand-new shop has no rating and no reviews. Reading a listing's
+  // emptiness back to the owner as "0 reviews at null stars" ends the
+  // conversation; the honest version of that fact is the pitch itself.
+  const standing = p.rating
+    ? `${p.name} has ${p.reviews} reviews at ${p.rating} stars, but there's no website on your Google listing.`
+    : `I went looking for ${p.name} online and there's no website on your Google listing — nothing to send anyone.`;
+
   return `# ${p.name} — pitch notes
 
 *Auto-generated from the Google listing. Verify before you quote anything.*
@@ -43,7 +54,7 @@ Best window for hospitality: **weekday 1:30–2:30pm** — after the rush, befor
 
 ## The 30-second open
 > "Hi — are you the owner? I'll be quick.
-> ${p.name} has ${p.reviews} reviews at ${p.rating} stars, but there's no website on your Google listing.
+> ${standing}
 > So I built you one. Here — *(hand them the phone)*
 > Use it free for ${trialDays} days. If you like it, it's ${money(price)} for the year and I keep it running.
 > If you don't, I take it down and you owe nothing."
