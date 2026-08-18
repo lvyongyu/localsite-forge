@@ -57,3 +57,14 @@ export const telHref = p => p.phoneHref ? `tel:${esc(p.phoneHref)}` : null;
 export const a11yCss = `
 *:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}`;
+
+// Shop names in a suburb like Box Hill are frequently entirely CJK.
+// Stripping to [a-z0-9] leaves an empty string, and every such shop then
+// writes into the output root, silently overwriting the previous one.
+// Keep any Unicode letter or digit; callers fall back to the place id.
+export const slug = s => String(s ?? '').toLowerCase()
+  .replace(/[^\p{L}\p{N}]+/gu, '-')
+  .replace(/^-+|-+$/g, '')
+  .slice(0, 60);
+
+export const dirFor = p => slug(p.name) || 'place-' + slug(p.id) || 'place';

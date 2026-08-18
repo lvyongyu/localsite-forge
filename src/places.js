@@ -2,7 +2,35 @@
 // Docs: https://developers.google.com/maps/documentation/places/web-service/op-overview
 // Field masks are mandatory and drive billing tier — keep them tight.
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 const BASE = 'https://places.googleapis.com/v1';
+
+// Details responses are the expensive call and they barely change. Cache them
+// on disk so re-generating sites after a template or vocabulary change costs
+// nothing. Google's terms limit how long Places content may be retained —
+// treat entries older than CACHE_TTL_DAYS as stale and refetch.
+const CACHE_DIR = new URL('../.cache/places/', import.meta.url).pathname;
+const CACHE_TTL_DAYS = 25;
+
+function cacheRead(id) {
+  try {
+    const f = path.join(CACHE_DIR, encodeURIComponent(id) + '.json');
+    const st = fs.statSync(f);
+    const age = (Date.now() - st.mtimeMs) / 86400000;
+    if (age > CACHE_TTL_DAYS) return null;
+    return JSON.parse(fs.readFileSync(f, 'utf8'));
+  } catch { return null; }
+}
+
+function cacheWrite(id, data) {
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+    fs.writeFileSync(path.join(CACHE_DIR, encodeURIComponent(id) + '.json'),
+      JSON.stringify(data));
+  } catch {}
+}
 
 // Cheap pass: everything needed to decide "is this a lead?"
 export const SCAN_FIELDS = [
@@ -96,12 +124,22 @@ export async function searchText({ query, type, minRating, max = 40 }) {
   return out.slice(0, max);
 }
 
-/** Full details for one place id. */
-export async function placeDetails(id) {
-  return call(`${BASE}/places/${encodeURIComponent(id)}`, {
+/** Full details for one place id. Served from disk cache when fresh. */
+export async function placeDetails(id, { refresh = false } = {}) {
+  if (!refresh) {
+    const hit = cacheRead(id);
+    if (hit) return hit;
+  }
+  const data = await call(`${BASE}/places/${encodeURIComponent(id)}`, {
     headers: {
       'X-Goog-Api-Key': key(),
       'X-Goog-FieldMask': DETAIL_FIELDS,
     },
   });
+  cacheWrite(id, data);
+  return data;
+}
+
+export function cacheStatus() {
+  try { return fs.readdirSync(CACHE_DIR).length; } catch { return 0; }
 }

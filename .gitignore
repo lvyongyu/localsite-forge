@@ -3,3 +3,4 @@ output/
 leads/
 .env
 .DS_Store
+.cache/

@@ -4,6 +4,7 @@ import { buildProfile, contentTodo } from '../src/profile.js';
 import { pickTheme } from '../src/theme.js';
 import { renderSite, pickLayout, layoutNames } from '../src/template.js';
 import { classifyWeb, filterAndRank } from '../src/scan.js';
+import { slug, dirFor } from '../src/render-utils.js';
 import fs from 'node:fs';
 
 let pass = 0, fail = 0;
@@ -116,6 +117,26 @@ t('generated pages differ structurally, not just in colour', () => {
   assert.notEqual(a, b);
   // Different layouts, not the same skeleton recoloured.
   assert.ok(a.includes('<main') && b.includes('class="dock"'), 'both pages used the same structure');
+});
+
+console.log('\noutput paths');
+t('REGRESSION: an all-CJK shop name still yields a directory', () => {
+  // Box Hill had one. Its files landed in the output root and would have
+  // overwritten the next such shop.
+  assert.ok(slug('大吉利旋转火锅').length > 0, 'CJK name slugged to empty');
+  assert.ok(slug('청춘초밥').length > 0, 'Hangul name slugged to empty');
+});
+t('mixed-script names keep both halves', () => {
+  assert.equal(slug('超艺理发 Niche Hair Studio'), '超艺理发-niche-hair-studio');
+});
+t('a name with no letters at all falls back to the place id', () => {
+  const d = dirFor({ name: '!!! ###', id: 'ChIJabc123' });
+  assert.ok(d.length > 0 && d !== '-', 'got ' + JSON.stringify(d));
+  assert.ok(d.includes('chijabc123'));
+});
+t('slug never yields a path separator or traversal', () => {
+  for (const n of ['../../etc/passwd', 'a/b\\c', '....'])
+    assert.ok(!slug(n).includes('/') && !slug(n).includes('\\'), n + ' -> ' + slug(n));
 });
 
 console.log('\nlayout selection');

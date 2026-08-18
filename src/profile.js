@@ -38,6 +38,38 @@ const SERVICE_TERMS = [
   'consultation','check up','clean and polish','whitening','filling',
 ];
 
+// Half of Box Hill trades in Chinese, Korean and Japanese, and so do its
+// reviews. An English-only vocabulary left those shops with an all-but-empty
+// menu section — the worst possible thing to hand an owner you're pitching.
+// CJK needs no word boundaries, so plain substring counting works here too.
+const CJK_DISH_TERMS = [
+  // Chinese - characters
+  '火锅','麻辣烫','麻辣香锅','串串','冒菜','干锅','砂锅','烧烤','烤串','烤鸭','北京烤鸭',
+  '牛肉面','拉面','刀削面','担担面','热干面','炸酱面','米线','螺蛳粉','酸辣粉','黄焖鸡',
+  '饺子','水饺','煎饺','小笼包','包子','烧麦','肠粉','云吞','馄饨','汤包',
+  '炒饭','炒面','盖浇饭','煲仔饭','粥','皮蛋瘦肉粥','油条','豆浆','煎饼','肉夹馍',
+  '麻婆豆腐','宫保鸡丁','回锅肉','水煮鱼','酸菜鱼','口水鸡','白切鸡','叉烧','烧腊',
+  '点心','蛋挞','菠萝包','豆花','烧仙草','芋圆','珍珠奶茶','奶茶','刨冰',
+  // Chinese / regional - romanised
+  'hot pot','hotpot','malatang','dim sum','yum cha','xiao long bao','xiaolongbao',
+  'char siu','peking duck','beef noodle','dan dan','mapo tofu','kung pao','sichuan',
+  'wonton','congee','bao','shengjian','jianbing','luosifen','biang biang',
+  // Korean
+  '김치','비빔밥','불고기','떡볶이','삼겹살','순두부','짜장면','치킨',
+  'kimchi','bibimbap','bulgogi','tteokbokki','samgyeopsal','sundubu','japchae',
+  'korean fried chicken','kimchi jjigae','bingsu','hotteok','gimbap',
+  // Japanese
+  'sashimi','gyoza','tempura','katsu','donburi','takoyaki','okonomiyaki',
+  'omakase','chirashi','unagi','yakitori','tonkotsu','miso soup','matcha latte',
+  // South-east Asian
+  'banh mi','bun cha','spring roll','rice paper roll','laksa','char kway teow',
+  'hainanese chicken rice','roti','nasi lemak','tom yum','green curry','massaman',
+  'satay','rendang','pandan',
+  // Bakery / dessert crossover
+  'souffle','soufflé','sourdough','croissant','egg tart','basque cheesecake',
+  'bubble tea','boba','milk tea','taro','brown sugar',
+];
+
 const ATTRS = [
   ['dineIn',            'Dine-in'],
   ['takeout',           'Takeaway'],
@@ -87,13 +119,42 @@ function mineOfferings(reviews, limit = 8) {
     .join(' ')
     .toLowerCase();
   const hits = [];
-  for (const term of [...DISH_TERMS, ...SERVICE_TERMS]) {
-    const n = blob.split(term).length - 1;
+  // The vocabularies overlap by hand (banh mi sits in both the general and
+  // the Asian list); a Set stops the same dish being counted twice.
+  for (const term of new Set([...DISH_TERMS, ...CJK_DISH_TERMS, ...SERVICE_TERMS])) {
+    // CJK has no word boundaries, so substring counting is correct there.
+    // Latin terms must not: bare substring matching found "pho" inside
+    // "phone" and put Vietnamese noodles on a Sichuan hotpot menu.
+    const cjk = /[\u3000-\u9fff\uac00-\ud7af]/.test(term);
+    let n;
+    if (cjk) {
+      n = blob.split(term).length - 1;
+    } else {
+      const re = new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
+      n = (blob.match(re) || []).length;
+    }
     if (n > 0) hits.push({ term, n });
   }
-  return hits.sort((a, b) => b.n - a.n).slice(0, limit)
+  // Vocabularies overlap: "bubble tea" also matches "tea", "珍珠奶茶" contains
+  // "奶茶". Prefer the longest specific match and drop anything contained by
+  // one already kept, otherwise the menu lists the same dish twice.
+  // Drop any term wholly contained by another that also matched: "fried
+  // chicken" loses to "korean fried chicken", "奶茶" to "珍珠奶茶". Filter
+  // before ranking — the generic term always counts higher (every mention of
+  // the specific one contains it), so ranking first would keep the wrong one.
+  // "hot pot" and "hotpot" are the same dish spelled two ways; compare with
+  // spacing and hyphens stripped so only one reaches the menu.
+  const norm = t => t.replace(/[\s-]/g, '');
+  const specific = hits.filter(h => !hits.some(o =>
+    o.term !== h.term &&
+    (o.term.includes(h.term) ||
+     (norm(o.term) === norm(h.term) && (o.n > h.n || (o.n === h.n && o.term < h.term))))));
+  specific.sort((a, b) => b.n - a.n || b.term.length - a.term.length);
+  return specific.slice(0, limit)
     .map(h => ({
-      title: h.term.replace(/\b\w/g, c => c.toUpperCase()),
+      title: /[\u3000-\u9fff\uac00-\ud7af]/.test(h.term)
+        ? h.term                                        // leave CJK as written
+        : h.term.replace(/\b[a-z]/g, c => c.toUpperCase()),
       mentions: h.n,
       unverified: true,
     }));
