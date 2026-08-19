@@ -1,5 +1,5 @@
 {
-  "_note": "Prospect, not a sample. Verified: trading name, street address, Hunan cuisine (the plaques on the shopfront). The menu was read off the shop's own dish photographs and the opening hours below are an EXAMPLE pattern — neither is confirmed by the owner, and neither is published anywhere. Build with --draft so both carry their warning, and replace them the moment the owner says the real ones. The phone number is a RESERVED FICTITIOUS number (Australia's 5550 range) so a demo can show a call button without ringing a stranger; replace it with the real one. forge site \"15 Village Ave, Doncaster VIC 3108\" once an API key is available. _awards are read off the plaques in the shopfront photograph and _menu photos map dish names to the files in the photos directory; both are read-off-a-picture guesses until the owner confirms them.",
+  "_note": "Prospect, not a sample. Verified: trading name, street address, Hunan cuisine (the plaques on the shopfront). The menu was read off the shop's own dish photographs and the opening hours below are an EXAMPLE pattern — neither is confirmed by the owner, and neither is published anywhere. Build with --draft so both carry their warning, and replace them the moment the owner says the real ones. The phone number is a RESERVED FICTITIOUS number (Australia's 5550 range) so a demo can show a call button without ringing a stranger; replace it with the real one. forge site \"15 Village Ave, Doncaster VIC 3108\" once an API key is available. _awards are read off the plaques in the shopfront photograph and _menu photos map dish names to the files in the photos directory; both are read-off-a-picture guesses until the owner confirms them. _zh.lede and the feature blurb are copy WRITTEN FOR THE OWNER TO APPROVE, not facts about the kitchen: they go nowhere near a live site until they have signed them off.",
   "id": "THE_MU_DONCASTER",
   "displayName": {
     "text": "慕芙蓉小馆 The Mu",
@@ -24,13 +24,18 @@
       "**湘菜在 Doncaster 这一带不多**，但搜「Hunan restaurant Doncaster」「湘菜 Doncaster」的人现在找不到你们 —— 这个词几乎没人跟你们抢。"
     ],
     "summary": "湘菜小馆，开在 Doncaster Village Ave。门口挂着「走进联合国的湘菜代表」「全国湘菜名店 50 强」三块牌子。",
-    "summaryEn": "A Hunan kitchen on Village Ave, Doncaster — the plaques at the door read “Hunan cuisine at the United Nations” and “Top 50 Hunan restaurants”."
+    "summaryEn": "A Hunan kitchen on Village Ave, Doncaster — the plaques at the door read “Hunan cuisine at the United Nations” and “Top 50 Hunan restaurants”.",
+    "lede": "现炒现做，辣度可以商量。午市晚市都开，堂食、外带、大桌聚餐都接。",
+    "ledeEn": "Cooked to order, heat to taste. Lunch and dinner, seven days — dine in, takeaway, or a big table for the family."
   },
   "_menu": [
     {
       "zh": "小炒黄牛肉",
       "en": "Stir-fried beef with chilli",
-      "photo": "6.jpg"
+      "photo": "6.jpg",
+      "feature": true,
+      "blurb": "辣椒、蒜片、黄牛肉。一口下去是湖南的火气，不是澳洲改良的甜口。",
+      "blurbEn": "Chilli, sliced garlic, yellow beef — cooked the way Hunan cooks it, not softened for the suburbs."
     },
     {
       "zh": "香辣炒蟹",

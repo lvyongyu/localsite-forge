@@ -123,6 +123,12 @@ What it does **not** do is manufacture the rest of that structure. No Functions 
 node bin/forge.js site "15 Village Ave, Doncaster VIC 3108" --layout storefront --lang zh --flat
 ```
 
+### `kitchen`: the layout a paying client gets
+
+`storefront` is built to be generated cold, for a shop that has not agreed to anything yet. Once someone signs, they should not be looking at the same page shape as every lead on the street. `--layout kitchen` is the paid job: a coloured masthead, a split hero where a photograph takes half the screen and the phone number takes the other half, one full-bleed **signature dish** with its own headline, dish cards carrying prices where the owner supplied them, and a strip that answers when / where / how to book. On a phone the call button lives in a docked bar.
+
+It reads three extra fixture fields, all of them owner-supplied and none of them inferred: a `_menu` entry may carry `price`, `feature: true` (the dish that gets the full-bleed treatment) and a `blurb`; `_zh.lede` / `_zh.ledeEn` is the line across the hero. **Prices appear only where a figure was given** — the rule survives the invoice, and the todo list says so on every build.
+
 ### Bilingual, without a second page
 
 `--lang zh` opens the page in Chinese; `--lang en` (the default) opens it in English. Either way `storefront` ships **both** languages in the one file with a switch in the bar — the choice is remembered per browser. Half of Box Hill and Doncaster trades in Chinese while the landlord's agent and the council read English; a single file that flips between them is worth more than two files that drift apart.
@@ -199,7 +205,7 @@ forge build  --from <leads.json> [--top <n>]
 forge demo
 
 build options, common to every form above:
-  --out <dir>        --layout poster|billoffare|card|storefront   --price <n>
+  --out <dir>        --layout poster|billoffare|card|storefront|kitchen
   --lang en|zh       --draft                                      --flat
   --inline-photos    --photos <n> | --no-photos
   --photos-dir <dir> --photo-credit <s>
@@ -218,7 +224,7 @@ src/profile.js    API payload -> site model; mines offerings, flags what's unver
 src/theme.js      palette selection
 src/template.js   layout selection
 src/i18n.js       bilingual chrome — the shop's own words are never translated
-src/layouts/      poster.js, billoffare.js, card.js, storefront.js
+src/layouts/      poster.js, billoffare.js, card.js, storefront.js, kitchen.js
 src/render-utils.js  escaping, <head>, live open/closed script, Unicode-safe slugs
 src/photos.js     photo choice, download, people screening, data-URI inlining
 src/roster.js     the door-knock page

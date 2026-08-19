@@ -68,13 +68,21 @@ export const T = {
   tbc:         ['To confirm', '待确认'],
   sampleHours: ['Example hours — replace with the real ones before this goes anywhere near the public.',
                 '以上为示例时间，请店家当场改成实际营业时间；对外之前必须替换。'],
-  suppliedMenu:['Read off the shop’s own photographs, not supplied by the kitchen — confirm every line with the owner. No prices are shown anywhere on this page.',
-                '以下菜名是照着店里自己的菜品照片认的，不是厨房给的清单，请逐道与店家确认。本页不显示任何价格。'],
+  suppliedMenu:['Read off the shop’s own photographs, not supplied by the kitchen — confirm every line with the owner. Prices appear only where the owner has given one; this page never invents a figure.',
+                '以下菜名是照着店里自己的菜品照片认的，不是厨房给的清单，请逐道与店家确认。价格只显示店家提供的，本页不会自己编价格。'],
   demoFooter:  ['Private demo — not indexed', '内部演示页 — 未被搜索引擎收录'],
   awardsKick:  ['On the wall at the door', '门口墙上'],
   awardNote:   ['Read off the plaques on the shopfront — confirm the wording with the owner.',
                 '以上取自门口的牌匾，具体措辞请与店家确认。'],
   dishesKick:  ['The dishes', '菜品'],
+  featureKick: ['Signature', '招牌'],
+  allDishes:   ['See the whole menu', '看整份菜单'],
+  bookTakeaway:['Bookings & takeaway', '订位 · 外带'],
+  dineTakeaway:['Dine in · Takeaway', '堂食 · 外带'],
+  priceTbd:    ['price to confirm', '价格待定'],
+  thisWeek:    ['This week', '本周'],
+  todayIs:     ['Today', '今日'],
+  ledeTbd:     ['One line about the kitchen — the owner’s words, not ours', '一句话介绍这家的味道 —— 用店家自己的说法'],
 };
 
 // The attribute labels the API hands back are English. A page opened in

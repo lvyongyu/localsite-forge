@@ -218,6 +218,10 @@ export function buildProfile(place, opts = {}) {
     taglineZh: hookZh ? `${hookZh}${openDays.length === 7 && hookZh !== '一周七天营业' ? '，一周七天' : ''}` : '',
     summary: place.editorialSummary?.text ?? place._zh?.summaryEn ?? '',
     summaryZh: place._zh?.summary ?? '',
+    // The line across the hero. Written for the owner to approve, never
+    // published as fact about the kitchen until they have.
+    lede: place._zh?.ledeEn ?? '',
+    ledeZh: place._zh?.lede ?? '',
     address: place.formattedAddress ?? '',
     shortAddress: place.shortFormattedAddress ?? place.formattedAddress ?? '',
     suburb: suburbOf(place.formattedAddress),
@@ -247,7 +251,8 @@ export function buildProfile(place, opts = {}) {
         ? place._menu.slice(0, 12).map(d => typeof d === 'string'
             ? { title: d, titleEn: '', photo: '', unverified: true, supplied: true }
             : { title: d.zh ?? d.en ?? '', titleEn: d.en ?? '', photo: d.photo ?? '',
-                unverified: true, supplied: true })
+                price: d.price ?? '', feature: d.feature === true, blurb: d.blurb ?? '',
+                blurbEn: d.blurbEn ?? '', unverified: true, supplied: true })
         : mineOfferings(place.reviews),
     // Drives the section heading: a barber does not have "a menu".
     isFood: (place.types ?? []).some(t =>
@@ -268,7 +273,9 @@ export function contentTodo(p) {
   else if (p.dishes.some(d => d.supplied))
     todo.push(`Confirm the ${p.dishes.length} ${noun.toLowerCase()} below with the owner — they were read off photographs, not supplied by the kitchen. Wrong dish names on a page you hand to a chef is the fastest way to lose the room.`);
   else todo.push(`Confirm the ${p.dishes.length} ${noun.toLowerCase()} below with the owner (mined from review text, NOT authoritative)`);
-  todo.push('Prices — deliberately omitted. Never guess these.');
+  if (p.dishes.some(x => x.price))
+    todo.push('Prices — shown for the items that carry one. Every figure must come from the owner; the tool never fills one in.');
+  else todo.push('Prices — deliberately omitted. Never guess these.');
   if (p.photos.length && p.photos.some(x => x.local))
     todo.push(`Photos — ${p.photos.length} image(s) supplied by hand, NOT screened by the people detector. Check every one for customers or staff who did not agree to appear, and confirm you have the right to use them at all: a shot taken by a reviewer belongs to that reviewer, not to the shop. The owner's own photos are the only ones that survive the site going live.`);
   else if (p.photos.length)

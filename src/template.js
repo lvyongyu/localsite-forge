@@ -8,6 +8,8 @@
 //   poster      counter trade — decided on the footpath, needs "open?" fast
 //   billoffare  sit-down venue — decided the night before, needs the menu
 //   card        appointment trade — decided already, needs to book
+//   kitchen     the paid job: red masthead, split hero, a full-bleed
+//               signature dish, priced cards. Opt in with --layout kitchen.
 //   storefront  the full page: persistent nav, a section per thing the
 //               listing knows, bilingual chrome. Opt in with --layout
 //               storefront — it is the right shape where a shop is being
@@ -21,8 +23,9 @@ import { render as poster } from './layouts/poster.js';
 import { render as billoffare } from './layouts/billoffare.js';
 import { render as card } from './layouts/card.js';
 import { render as storefront } from './layouts/storefront.js';
+import { render as kitchen } from './layouts/kitchen.js';
 
-const LAYOUTS = { poster, billoffare, card, storefront };
+const LAYOUTS = { poster, billoffare, card, storefront, kitchen };
 
 function hash(s) {
   let h = 2166136261;
